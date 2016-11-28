@@ -1,0 +1,83 @@
+<script>
+Homey.setTitle( __('pair.start.title') );
+Homey.on('error', function( errortype, callback ){
+	if (errortype == 'error') {
+		Homey.alert(__('pair.start.error'), 'error');
+		Homey.done();
+	}
+	if (errortype == 'nosettings') {
+		Homey.alert(__('pair.start.nosettings'), 'error');
+		Homey.done();
+	}
+})
+
+function GetGUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
+function saveSettings () {
+	$('.ssh-err-msg').text('');
+	// variables
+	var inputIPAddress = $('#ipAddress').val();
+	var inputDeviceName = $('#deviceName').val();
+	// If required values are filled in
+	// FIXME: should check if this is a real IPv4 address
+	if (inputIPAddress != '') {
+		var device = {
+			data: {
+				id: GetGUID()       // Trying to keep this the same when you delete a device doesn't help keep flows intact.
+			},                      // So we just get a GUID so there is no weirdness when you change IP addresses but the ID stays the same.
+			name: inputDeviceName,  // So a second device cannot be added because the first still uses the old IP based ID. 
+			settings: {
+				"com.moz.denon.settings.ip": inputIPAddress,
+			}
+		};
+		Homey.emit( 'list_devices', device, function ( err, result ) {
+			if(err !== null) {
+				$('.ssh-err-msg').text(err);
+			} else {
+				//Successfully connected
+				Homey.addDevice(device, function( err, result ){
+					if( err ) return console.error(err);
+					console.log( result);
+				});
+				//Done pairing
+				Homey.done();
+			}
+		} );
+	} else {
+		$('.ssh-err-msg').text(__('pair.start.required'));
+	}
+}
+</script>
+    <p data-i18n="pair.start.intro">enter IP address and name</p>
+		<style>
+			.pairSettings {
+				font-size:16px;
+				border:none;
+			}
+			input {
+				font-size:16px;
+				border: 1px solid #ccc;
+			}
+		</style>
+		<table class="pairSettings">
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.ipAddress">IP</td>
+				<td><input id="ipAddress" type="text" value="" placeholder="192.168.1.1"/></td>
+			</tr>
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.deviceName">Name</td>
+				<td><input id="deviceName" type="text" value="Denon AVR" placeholder="Denon AVR"/></td>
+			</tr>
+		</table>
+		<p>
+		&nbsp;
+	  </p>
+<fieldset>
+    <button class="button" data-i18n="pair.start.saveSettings" onclick="saveSettings()">Save</button>
+</fieldset>
+<p class="ssh-err-msg" style="color: #ff6300;"></p>

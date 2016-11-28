@@ -1,0 +1,287 @@
+{
+    "id": "com.moz.denon",
+    "name": {
+        "en": "Denon AVR"
+    },
+    "version": "0.1.0",
+    "compatibility": "1.x",
+    "author": {
+        "name": "Ralph Schaafsma",
+        "email": "ralph.schaafsma@gmail.com"
+    },
+    "drivers": [
+        {
+            "id": "com.moz.denon.driver",
+            "name": {
+                "en": "Denon AVR"
+            },
+            "class": "other",
+            "capabilities": [ "onoff", "volume_up", "volume_down" ],
+            "pair": [
+                {
+                    "id": "start"
+                },
+                {
+                    "id": "list_denons",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_denon"
+                    }
+                },
+                {
+                    "id": "add_denon",
+                    "template": "add_devices"
+                }
+            ],
+            "settings": [{
+                "type": "group",
+                "label": {
+                    "en": "Amplifier settings",
+                    "nl": "Versterker instellingen"
+                },
+                "children": [{
+                    "id": "com.moz.denon.settings.ip",
+                    "type": "text",
+                    "label": {
+                        "en": "IP address of your Denon Amplifier",
+                        "nl": "IP adres van de Denon Versterker"
+                    },
+                    "value": ""
+                }]
+            }]
+        }
+    ],
+    "flow": {
+        "actions": [{
+            "id": "com.moz.denon.actions.poweron",
+            "title": {
+                "en": "Turn power on",
+                "nl": "Zet aan"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.poweroff",
+            "title": {
+                "en": "Power off/standby",
+                "nl": "Uitschakelen/standby"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.powertoggle",
+            "title": {
+                "en": "Toggle Power",
+                "nl": "Aan/Uit"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.mutetoggle",
+            "title": {
+                "en": "Mute/Unmute",
+                "nl": "Mute/Unmute"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.mute",
+            "title": {
+                "en": "Mute",
+                "nl": "Mute"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.unmute",
+            "title": {
+                "en": "Unmute",
+                "nl": "Unmute"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }]
+        }, {
+            "id": "com.moz.denon.actions.volume",
+            "title": {
+                "en": "Adjust Volume",
+                "nl": "Pas Volume Aan"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }, {
+                "name": "db",
+                "type": "range",
+                "min": "-10",
+                "max": "10",
+                "step": "0.5",
+                "label": "db",
+                "labelMultiplier": "1.0",
+                "labelDecimals": "1"
+            }]
+        }, {
+            "id": "com.moz.denon.actions.volumeset",
+            "title": {
+                "en": "Set Volume",
+                "nl": "Zet Volume"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }, {
+                "name": "db",
+                "type": "range",
+                "min": "0",
+                "max": "90",
+                "step": "0.5",
+                "label": "db",
+                "labelMultiplier": "1.0",
+                "labelDecimals": "1"
+            }]
+        }, {
+            "id": "com.moz.denon.actions.source",
+            "title": {
+                "en": "Select Source",
+                "nl": "Kies Kanaal"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }, {
+                "name": "channel",
+                "type": "dropdown",
+                "values": [ { "id": "TUNER",    "label": { "en": "Tuner" } },
+                            { "id": "DVD",      "label": { "en": "DVD" } },
+                            { "id": "BD",       "label": { "en": "Blu-ray" } },
+                            { "id": "TV",       "label": { "en": "TV Audio" } },
+                            { "id": "SAT/CBL",   "label": { "en": "CBL/SAT" } },
+                            { "id": "MPLAY",   "label": { "en": "Media Player" } },
+                            { "id": "GAME",   "label": { "en": "Game" } },
+                            { "id": "AUX1",   "label": { "en": "Aux 1" } },
+                            { "id": "NET",   "label": { "en": "Network" } },
+                            { "id": "PANDORA",   "label": { "en": "Pandora (US Only)" } },
+                            { "id": "SIRIUSXM",   "label": { "en": "Siriusxm (US Only)" } },
+                            { "id": "SPOTIFY",   "label": { "en": "Spotify" } },
+                            { "id": "FLICKR",   "label": { "en": "Flickr" } },
+                            { "id": "FAVORITES",   "label": { "en": "Favorites" } },
+                            { "id": "IRADIO",   "label": { "en": "Internet Radio" } },                            
+                            { "id": "SERVER",   "label": { "en": "Server" } },                            
+                            { "id": "USB/IPOD",   "label": { "en": "USB/iPod" } },                            
+                            { "id": "USB",   "label": { "en": "USB (Start Playback)" } },                            
+                            { "id": "IPD",   "label": { "en": "iPod Direct (Start Playback)" } },                            
+                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } }]
+            }]
+        }], 
+        "conditions": [ {
+            "id": "com.moz.denon.conditions.power",
+            "title": {
+                "en": "Powered On",
+                "nl": "Staat aan"
+            },
+             "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+             }]
+        }, {
+            "id": "com.moz.denon.conditions.channel",
+            "title": {
+                "en": "Selected As Source",
+                "nl": "Kanaal Is Actief"
+            },
+             "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+             }, {
+                "name": "channel",
+                "type": "dropdown",
+                "values": [ { "id": "TUNER",    "label": { "en": "Tuner" } },
+                            { "id": "DVD",      "label": { "en": "DVD" } },
+                            { "id": "BD",       "label": { "en": "Blu-ray" } },
+                            { "id": "TV",       "label": { "en": "TV Audio" } },
+                            { "id": "SAT/CBL",   "label": { "en": "CBL/SAT" } },
+                            { "id": "MPLAY",   "label": { "en": "Media Player" } },
+                            { "id": "GAME",   "label": { "en": "Game" } },
+                            { "id": "AUX1",   "label": { "en": "Aux 1" } },
+                            { "id": "NET",   "label": { "en": "Network" } },
+                            { "id": "PANDORA",   "label": { "en": "Pandora (US Only)" } },
+                            { "id": "SIRIUSXM",   "label": { "en": "Siriusxm (US Only)" } },
+                            { "id": "SPOTIFY",   "label": { "en": "Spotify" } },
+                            { "id": "FLICKR",   "label": { "en": "Flickr" } },
+                            { "id": "FAVORITES",   "label": { "en": "Favorites" } },
+                            { "id": "IRADIO",   "label": { "en": "Internet Radio" } },                            
+                            { "id": "SERVER",   "label": { "en": "Server" } },                            
+                            { "id": "USB/IPOD",   "label": { "en": "USB/iPod" } },                            
+                            { "id": "USB",   "label": { "en": "USB (Start Playback)" } },                            
+                            { "id": "IPD",   "label": { "en": "iPod Direct (Start Playback)" } },                            
+                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } }]
+            }]
+        }]
+    }
+}
