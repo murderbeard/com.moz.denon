@@ -1,13 +1,13 @@
 {
     "pair":{
         "start":{
-            "intro":"Enter your device's IP address and give it a name.",
-            "title":"Finding device...",
+            "intro":"Enter your Denon AVR's IP address and give it a name. Make sure Network Control is enabled in your Denon AVR's settings.",
+            "title":"Add Denon AVR...",
             "error":"An error has occurred.",
-            "required":"IP address is a required value.",
+            "required":"IP address is required.",
             "ipAddress":"IP address",
             "deviceName":"Device name",
-            "saveSettings":"Save settings"
+            "saveSettings":"Add device"
         }
     }
 }

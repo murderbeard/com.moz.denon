@@ -1,13 +1,13 @@
 {
     "pair":{
         "start":{
-            "intro":"Vul het IP adres van uw apparaat in en geef het een naam.",
-            "title":"Apparaat zoeken...",
+            "intro":"Voer het IP adres van de Denon AVR in en geef het een naam. Zorg er tevens voor dat Network Control aan staat in de instellingen van uw Denon AVR.",
+            "title":"Denon AVR Toevoegen...",
             "error":"Er is een fout opgetreden.",
             "required":"IP adres is verplicht.",
             "ipAddress":"IP adres",
-            "deviceName":"Naam van het apparaat",
-            "saveSettings":"Gegevens opslaan"
+            "deviceName":"Naam",
+            "saveSettings":"Voeg toe"
         }
     }
 }

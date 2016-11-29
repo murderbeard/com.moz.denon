@@ -20,10 +20,10 @@ function GetGUID() {
 
 function saveSettings () {
 	$('.ssh-err-msg').text('');
-	// variables
+
 	var inputIPAddress = $('#ipAddress').val();
 	var inputDeviceName = $('#deviceName').val();
-	// If required values are filled in
+
 	// FIXME: should check if this is a real IPv4 address
 	if (inputIPAddress != '') {
 		var device = {

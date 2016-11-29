@@ -2,7 +2,7 @@
 
 Control your Denon AVR network enabled receiver with your Homey.
 
-This apps connects via Telnet to your Denon receiver. Please make sure it set up to have a static IP address as well as enabling Network Control. (Setup->Network->Network Control on your receiver)
+This apps connects via Telnet to your Denon receiver. Please make sure it is set up to have a static IP address as well as enabling Network Control. (Setup->Network->Network Control on your receiver)
 
 ##Features
 Action Flow Cards:
