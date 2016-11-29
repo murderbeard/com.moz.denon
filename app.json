@@ -3,17 +3,33 @@
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.0",
+    "version": "0.1.2",
     "compatibility": "1.x",
     "author": {
         "name": "Ralph Schaafsma",
         "email": "ralph.schaafsma@gmail.com"
+    },
+    "images": {
+      "large": "./assets/images/large.png",
+      "small": "./assets/images/small.png"
+    },
+    "category": "appliances",
+    "description": {
+    	"en": "Denon AVR receiver app for Homey",
+		"nl": "Denon AVR versterker app voor Homey"
+    },
+    "dependencies": {
+    		"net": "*"
     },
     "drivers": [
         {
             "id": "com.moz.denon.driver",
             "name": {
                 "en": "Denon AVR"
+            },
+            "images": {
+                "large": "./assets/images/large.png",
+                "small": "./assets/images/small.png"
             },
             "class": "other",
             "capabilities": [ "onoff", "volume_up", "volume_down" ],
