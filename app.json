@@ -28,8 +28,8 @@
                 "en": "Denon AVR"
             },
             "images": {
-                "large": "./drivers/com.moz.denon/assets/images/large.png",
-                "small": "./drivers/com.moz.denon/assets/images/small.png"
+                "large": "drivers/com.moz.denon/assets/images/large.png",
+                "small": "drivers/com.moz.denon/assets/images/small.png"
             },
             "class": "other",
             "capabilities": [ "onoff", "volume_up", "volume_down" ],
