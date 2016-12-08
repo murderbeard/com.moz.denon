@@ -354,7 +354,7 @@ Homey.manager('flow').on('condition.com.moz.denon.conditions.channel', function(
     var device = devices[args.device.id];
 
     ReadRequest(device.settings['com.moz.denon.settings.ip'], 'SI?', (result, socket) => {
-        if(result.substring(0, 2) != 'SI')  // We ignore any SV, video mode data that comes second.
+        if(result != null && result.substring(0, 2) != 'SI')  // We ignore any SV, video mode data that comes second.
             return;
 
         if(result != null) {

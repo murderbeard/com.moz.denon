@@ -29,3 +29,6 @@ Please let me know if your Denon model is supported.
 Currently most important features are implemented but there are several things that would be nice to have.
 * Zone2 control 
 * Trigger cards
+
+##Version 0.1.3
+* Fix 'substring' of null crash for channel condition flow card.
