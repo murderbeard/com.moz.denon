@@ -315,11 +315,28 @@ Homey.manager('flow').on('action.com.moz.denon.actions.volume', function(callbac
     var device = devices[args.device.id];
 
     ReadRequest(device.settings['com.moz.denon.settings.ip'], 'MV?', (result, socket) => {
-        if(result != null) {
-            var volume = parseInt(result.substring(2));
-            var add = parseFloat(args.db) * 10;
+        if(result != null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
+            return;
 
-            socket.write(AsBytes('MV'+(volume+add)), () => {
+        if(result != null) {
+            var volumeAsString = result.substring(2);
+            var volume = parseInt(volumeAsString);
+
+            if(volumeAsString.length == 2)          // We always want to  work in .5db mode.
+                volume *= 10;
+
+            var add = parseFloat(args.db) * 10;
+            
+            var newVolume = (volume+add);
+            if(newVolume < 0) newVolume = 0;
+
+            var paddedResult = newVolume.toString();
+            while(paddedResult.length < 3)         // Again always in .5db mode. AVR doesn't care if the last ch is 0.
+                paddedResult = '0' + paddedResult;
+
+            Homey.log("Adjusting volume from " + volumeAsString + " with length of " + volumeAsString.length + " parsed as (" + volume + ") to (" + newVolume + ") sent as (" + paddedResult + ")");
+
+            socket.write(AsBytes('MV'+paddedResult), () => {
                 socket.end();
             });            
         } else {
