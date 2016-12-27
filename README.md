@@ -30,8 +30,11 @@ Currently most important features are implemented but there are several things t
 * Zone2 control 
 * Trigger cards
 
+##Version 0.1.5
+* A change in Homey meant device status could be requested before settings were saved when pairing. Failsafe added.
+
 ##Version 0.1.4
-* Fix for volume adjust not parsing whole dB numbers correctly which could cause large jumps in db.
+* Fix for volume adjust not parsing whole dB numbers correctly which could cause large jumps in dB.
 * Fix for volume adjust sending negative dB values, which is ignored by the AVR but makes no sense to let happen. 
 * Reponse packet telling that the AVR is on max volume is not considered a real volume request response. (Caused no problems but still a bug.)
 
