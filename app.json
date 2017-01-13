@@ -3,7 +3,7 @@
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.5",
+    "version": "0.1.6",
     "compatibility": "1.x",
     "author": {
         "name": "Ralph Schaafsma",
@@ -32,7 +32,7 @@
                 "small": "drivers/com.moz.denon.driver/assets/images/small.png"
             },
             "class": "other",
-            "capabilities": [ "onoff", "volume_up", "volume_down" ],
+            "capabilities": [ "onoff" ],
             "pair": [
                 {
                     "id": "start"

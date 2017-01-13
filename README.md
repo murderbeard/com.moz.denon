@@ -30,6 +30,10 @@ Currently most important features are implemented but there are several things t
 * Zone2 control 
 * Trigger cards
 
+##Version 0.1.6
+* Fixed crash in capabilities.onoff.set.
+* Power flow cards now use module.exports.capabilities, removing duplicate code and making the onoff state data available for insights.
+
 ##Version 0.1.5
 * A change in Homey meant device status could be requested before settings were saved when pairing. Failsafe added.
 

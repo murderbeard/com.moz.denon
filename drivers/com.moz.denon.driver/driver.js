@@ -219,45 +219,19 @@ module.exports.settings = function(device_data, newSettingsObj, oldSettingsObj, 
 
 /// ACTION HANDLING
 Homey.manager('flow').on('action.com.moz.denon.actions.poweron', function(callback, args) {
-    Homey.log("Power On");
-    var device = devices[args.device.id];
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'PWON');
-
+    module.exports.capabilities.onoff.set(args.device, true, (error, result) => {});
 	callback(null, true);
 });
 
 Homey.manager('flow').on('action.com.moz.denon.actions.poweroff', function(callback, args) {
-    Homey.log("Power Off");
-    var device = devices[args.device.id];
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'PWSTANDBY');
-
+    module.exports.capabilities.onoff.set(args.device, false, (error, result) => {});
 	callback(null, true);
 });
 
 Homey.manager('flow').on('action.com.moz.denon.actions.powertoggle', function(callback, args) {
-    Homey.log("Toggling Power");
-    var device = devices[args.device.id];
-
-    ReadRequest(device.settings['com.moz.denon.settings.ip'], 'PW?', (result, socket) => {
-        if(result == null) {
-            Homey.log("Unreachable Denon Receiver");
-            socket.end();
-        } else {
-            Homey.log(result);
-
-            if(result == 'PWON' || result == 'PWSTANDBY') {
-                var pass = 'PWON';
-                if(result == 'PWON')
-                    pass = 'PWSTANDBY';
-
-                socket.write(AsBytes(pass), ()=> {
-                    socket.end();
-                });
-            }
-            // Otherwise we've received some data about ZONE 2. Which fucks us up.
-        }
+    module.exports.capabilities.onoff.get(args.device, (error, result) => {
+        module.exports.capabilities.onoff.set(args.device, !result, (error, result) => {});
     });
-
 	callback(null, true);
 });
 
@@ -408,10 +382,15 @@ module.exports.capabilities.onoff.get = function( device_data, callback ) {
 
         socket.end();
 
+        var oldDeviceState = device.state.onoff;
+
         if(result == null || result == 'PWSTANDBY')
             device.state.onoff = false;
         else
             device.state.onoff = true;
+
+        if(oldDeviceState != device.state.onoff)    // Update our realtime data if the device changed state since we last looked.
+            module.exports.realtime( device_data, 'onoff', device.state.onoff);
 
         return callback( null, device.state.onoff );
     });
@@ -419,14 +398,14 @@ module.exports.capabilities.onoff.get = function( device_data, callback ) {
 module.exports.capabilities.onoff.set = function( device_data, onoff, callback ) {
     var device = GetDeviceByData( device_data );
     if(device instanceof Error) return callback( device );
+    if(device.settings == undefined) return callback(null, false);      // The device is not yet initialized.
 
     Homey.log("Setting Denon device power.");
     device.state.onoff = onoff;
 
     WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], onoff ? 'PWON' : 'PWSTANDBY'); 
 
-    // also emit the new value to realtime this produced Insights logs and triggers Flows
-    self.realtime( device_data, 'onoff', device.state.onoff)
+    module.exports.realtime( device_data, 'onoff', device.state.onoff); // also emit the new value to realtime this produced Insights logs and triggers Flows
 
     return callback( null, device.state.onoff );
 }
