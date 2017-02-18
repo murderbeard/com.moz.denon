@@ -7,7 +7,9 @@
             "required":"IP address is required.",
             "ipAddress":"IP address",
             "deviceName":"Device name",
-            "saveSettings":"Add device"
+            "saveSettings":"Add device",
+            "multizoneDescription":"Receivers with multiple Zones may experience Zone2 also being controlled unintentionally. If your receiver supports multiple Zones please tick the box below. If your receiver doesn't have multiple Zones or you're not sure, please leave it unticked. This can be changed later.",
+            "multizone":"Multiple Zones"
         }
     }
 }

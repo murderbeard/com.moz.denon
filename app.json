@@ -3,7 +3,7 @@
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.6",
+    "version": "0.1.7",
     "compatibility": "1.x",
     "author": {
         "name": "Ralph Schaafsma",
@@ -63,6 +63,28 @@
                         "nl": "IP adres van de Denon Versterker"
                     },
                     "value": ""
+                }, {
+                    "id": "com.moz.denon.settings.powercommand",
+                    "type": "radio",
+                    "label": {
+                        "en": "Ignore Zone2",
+                        "nl": "Negeer Zone2"
+                    },
+                    "value": "PW",
+                    "values": [ {
+                            "id": "PW",
+                            "label": {
+                                "en": "Power commands are sent using the PW command. Works on all devices.",
+                                "nl": "Aan/Uit commando's worden met het PW commando verstuurd. Werkt met alle apparaten."
+                            }
+                        }, {
+                            "id": "ZM",
+                            "label": {
+                                "en": "Power commands are sent using the ZM command. Only works on devices with multiple zones. Use this if you experience Zone2 also being powered on/off.",
+                                "nl": "Aan/Uit commando's worden met het ZM commando verstuurd. Werkt alleen op apparaten met meerdere zones. Gebruik dit als Zone2 ook onbedoeld aan/uit gaat."
+                            }
+                        }
+                    ]
                 }]
             }]
         }
@@ -231,6 +253,7 @@
                             { "id": "MPLAY",   "label": { "en": "Media Player" } },
                             { "id": "GAME",   "label": { "en": "Game" } },
                             { "id": "AUX1",   "label": { "en": "Aux 1" } },
+                            { "id": "AUX2",   "label": { "en": "Aux 2" } },
                             { "id": "NET",   "label": { "en": "Network" } },
                             { "id": "PANDORA",   "label": { "en": "Pandora (US Only)" } },
                             { "id": "SIRIUSXM",   "label": { "en": "Siriusxm (US Only)" } },
@@ -242,7 +265,11 @@
                             { "id": "USB/IPOD",   "label": { "en": "USB/iPod" } },                            
                             { "id": "USB",   "label": { "en": "USB (Start Playback)" } },                            
                             { "id": "IPD",   "label": { "en": "iPod Direct (Start Playback)" } },                            
-                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } }]
+                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } },
+                            { "id": "AUXA",   "label": { "en": "Portable In (N8 Only)" } },
+                            { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
+                            { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
+                            { "id": "AUXD",   "label": { "en": "Digital In" } }]
             }]
         }], 
         "conditions": [ {
@@ -285,6 +312,7 @@
                             { "id": "MPLAY",   "label": { "en": "Media Player" } },
                             { "id": "GAME",   "label": { "en": "Game" } },
                             { "id": "AUX1",   "label": { "en": "Aux 1" } },
+                            { "id": "AUX2",   "label": { "en": "Aux 2" } },
                             { "id": "NET",   "label": { "en": "Network" } },
                             { "id": "PANDORA",   "label": { "en": "Pandora (US Only)" } },
                             { "id": "SIRIUSXM",   "label": { "en": "Siriusxm (US Only)" } },
@@ -296,7 +324,11 @@
                             { "id": "USB/IPOD",   "label": { "en": "USB/iPod" } },                            
                             { "id": "USB",   "label": { "en": "USB (Start Playback)" } },                            
                             { "id": "IPD",   "label": { "en": "iPod Direct (Start Playback)" } },                            
-                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } }]
+                            { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } },
+                            { "id": "AUXA",   "label": { "en": "Portable In (N8 Only)" } },
+                            { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
+                            { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
+                            { "id": "AUXD",   "label": { "en": "Digital In" } }]
             }]
         }]
     }

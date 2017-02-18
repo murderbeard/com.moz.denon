@@ -30,6 +30,10 @@ Currently most important features are implemented but there are several things t
 * Zone2 control 
 * Trigger cards
 
+##Version 0.1.7
+* Added option to use ZM instead of PW to only control the Main Zone. Zone2 would also get turned on/off on devices with multiple zones, single zone devices should use PW.
+* Added more AUX channels for 3100-W and N8: AUX2, AUXA, AUXB, AUXC and AUXD.
+
 ##Version 0.1.6
 * Fixed crash in capabilities.onoff.set.
 * Power flow cards now use module.exports.capabilities, removing duplicate code and making the onoff state data available for insights.

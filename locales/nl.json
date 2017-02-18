@@ -7,7 +7,9 @@
             "required":"IP adres is verplicht.",
             "ipAddress":"IP adres",
             "deviceName":"Naam",
-            "saveSettings":"Voeg toe"
+            "saveSettings":"Voeg toe",            
+            "multizoneDescription":"Versterkers met meerdere Zones kunnen ervaren dat ook Zone2 onbedoeld bestuurd wordt. Geef daarom aan of uw versterker meerdere Zones ondersteund. Als uw versterker geen meerdere Zones heeft of u weet het niet zeker, laat dan het vinkje uitgevinkt. Dit is later nog aan te passen.",
+            "multizone":"Meerdere Zones"
         }
     }
 }

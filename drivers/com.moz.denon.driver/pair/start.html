@@ -23,16 +23,20 @@ function saveSettings () {
 
 	var inputIPAddress = $('#ipAddress').val();
 	var inputDeviceName = $('#deviceName').val();
+	var inputZone2 = $('#zone2')[0].checked ? "ZM" : "PW";
 
 	// FIXME: should check if this is a real IPv4 address
 	if (inputIPAddress != '') {
+		
+
 		var device = {
 			data: {
 				id: GetGUID()       // Trying to keep this the same when you delete a device doesn't help keep flows intact.
 			},                      // So we just get a GUID so there is no weirdness when you change IP addresses but the ID stays the same.
 			name: inputDeviceName,  // So a second device cannot be added because the first still uses the old IP based ID. 
 			settings: {
-				"com.moz.denon.settings.ip": inputIPAddress,
+				"com.moz.denon.settings.ip": inputIPAddress,				
+				"com.moz.denon.settings.powercommand": inputZone2
 			}
 		};
 		Homey.emit( 'list_devices', device, function ( err, result ) {
@@ -54,6 +58,7 @@ function saveSettings () {
 }
 </script>
     <p data-i18n="pair.start.intro">enter IP address and name</p>
+	<p data-i18n="pair.start.multizoneDescription">Explanation about Zone2</p>
 		<style>
 			.pairSettings {
 				font-size:16px;
@@ -72,6 +77,10 @@ function saveSettings () {
 			<tr>
 				<td style="width:100px;" data-i18n="pair.start.deviceName">Name</td>
 				<td><input id="deviceName" type="text" value="Denon AVR" placeholder="Denon AVR"/></td>
+			</tr>
+			<tr>
+				<td style="width:100px;" data-i18n="pair.start.multizone">Name</td>
+				<td><input id="zone2" type="checkbox" value="false" placeholder="false"/></td>
 			</tr>
 		</table>
 		<p>

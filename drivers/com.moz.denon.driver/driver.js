@@ -16,6 +16,10 @@ const READ_MODE = 1;                    // We write a command and return the res
 const TELNET_RECONNECT_TIME_OUT = 100;  // Time before we consider a socket truly closed. Denon AVR doesn't accept a new connection while the old is open for some time.
 const LOOP_DELAY = 10;                  // The time in between command buffer handling.
 
+const DEFAULT_IP = "192.168.0.1";
+const SETTING_KEY_IP = "com.moz.denon.settings.ip";
+const SETTING_KEY_POWER_COMMAND = "com.moz.denon.settings.powercommand";
+
 function AsBytes(str) {
     var array = new Buffer(str.length + 1);
 
@@ -153,6 +157,7 @@ function InitDevice( device_data ) {
     Homey.log("Initializing Device, getting settings...");
     module.exports.getSettings(device_data, function(err, settings) {
         Homey.log("Requested settings for " + device_data.id + ", result: " + err + ' ' + settings);
+        Homey.log(settings);
         devices[device_data.id].settings = settings;
     });
 }
@@ -217,6 +222,31 @@ module.exports.settings = function(device_data, newSettingsObj, oldSettingsObj, 
     callback(null, true);
 }
 
+function GetSettingByDeviceID(deviceID, settingID, defaultValue) {
+    var device = devices[deviceID];
+
+    if(device == undefined || device == null)
+        return defaultValue;
+
+    return GetSettingByDevice(device, settingID, defaultValue);
+}
+
+function GetSettingByDeviceData(deviceData, settingID, defaultValue) {
+    var device = devices[deviceData.id];
+
+    if(device == undefined || device == null)
+        return defaultValue;
+    
+    return GetSettingByDevice(device, settingID, defaultValue);
+}
+
+function GetSettingByDevice(device, settingID, defaultValue) {
+    if( device == undefined || device == null || device.settings == undefined || device.settings[settingID] == undefined)
+        return defaultValue;
+    else
+        return device.settings[settingID];
+}
+
 /// ACTION HANDLING
 Homey.manager('flow').on('action.com.moz.denon.actions.poweron', function(callback, args) {
     module.exports.capabilities.onoff.set(args.device, true, (error, result) => {});
@@ -237,25 +267,23 @@ Homey.manager('flow').on('action.com.moz.denon.actions.powertoggle', function(ca
 
 Homey.manager('flow').on('action.com.moz.denon.actions.mute', function(callback, args) {
     Homey.log("Muting");
-    var device = devices[args.device.id];
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'MUON');
+    
+    WriteCloseRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'MUON');
 
 	callback(null, true);
 });
 
 Homey.manager('flow').on('action.com.moz.denon.actions.unmute', function(callback, args) {
     Homey.log("Unmuting");
-    var device = devices[args.device.id];
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'MUOFF');
+    WriteCloseRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'MUOFF');
 
 	callback(null, true);
 });
 
 Homey.manager('flow').on('action.com.moz.denon.actions.mutetoggle', function(callback, args) {
     Homey.log("Toggling Mute");
-    var device = devices[args.device.id];
 
-    ReadRequest(device.settings['com.moz.denon.settings.ip'], 'MU?', (result, socket) => {
+    ReadRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'MU?', (result, socket) => {
         if(result != null) {
             var mute = ((result == 'MUON') ? 'MUOFF' : 'MUON');
 
@@ -272,18 +300,16 @@ Homey.manager('flow').on('action.com.moz.denon.actions.mutetoggle', function(cal
 
 Homey.manager('flow').on('action.com.moz.denon.actions.source', function(callback, args) {
     Homey.log("Setting Source");
-    var device = devices[args.device.id];
 
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'SI' + args.channel);
+    WriteCloseRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'SI' + args.channel);
 
 	callback(null, true);
 });
 
 Homey.manager('flow').on('action.com.moz.denon.actions.volume', function(callback, args) {
     Homey.log("Change Volume");
-    var device = devices[args.device.id];
 
-    ReadRequest(device.settings['com.moz.denon.settings.ip'], 'MV?', (result, socket) => {
+    ReadRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'MV?', (result, socket) => {
         if(result != null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
             return;
 
@@ -318,17 +344,15 @@ Homey.manager('flow').on('action.com.moz.denon.actions.volume', function(callbac
 
 Homey.manager('flow').on('action.com.moz.denon.actions.volumeset', function(callback, args) {
     Homey.log("Setting Volume");
-    var device = devices[args.device.id];
 
     var volume = parseFloat(args.db) * 10;
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], 'MV' + volume);
+    WriteCloseRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'MV' + volume);
 
 	callback(null, true);
 });
 
 Homey.manager('flow').on('condition.com.moz.denon.conditions.power', function( callback, args ){
     Homey.log("Getting power state for condition.");
-    var device = devices[args.device.id];
 
     module.exports.capabilities.onoff.get(args.device, (object, state) => {
         callback(null, state);
@@ -337,9 +361,8 @@ Homey.manager('flow').on('condition.com.moz.denon.conditions.power', function( c
 
 Homey.manager('flow').on('condition.com.moz.denon.conditions.channel', function( callback, args ){
     Homey.log("Getting channel for condition.");
-    var device = devices[args.device.id];
 
-    ReadRequest(device.settings['com.moz.denon.settings.ip'], 'SI?', (result, socket) => {
+    ReadRequest(GetSettingByDeviceData(args.device, SETTING_KEY_IP, DEFAULT_IP), 'SI?', (result, socket) => {
         if(result != null && result.substring(0, 2) != 'SI')  // We ignore any SV, video mode data that comes second.
             return;
 
@@ -376,15 +399,18 @@ module.exports.capabilities.onoff.get = function( device_data, callback ) {
 
     Homey.log("Getting Denon device status.");
 
-    ReadRequest(device.settings['com.moz.denon.settings.ip'], 'PW?', (result, socket) => {
-        if(result != null && result.substring(0, 2) != 'PW')  // We don't handle Zone 2.
+    var powerCommand =  GetSettingByDevice(device, SETTING_KEY_POWER_COMMAND, "PW");
+    var offCommand =    powerCommand == "PW" ? "STANDBY" : "OFF";
+
+    ReadRequest(GetSettingByDevice(device, SETTING_KEY_IP, DEFAULT_IP), powerCommand + '?', (result, socket) => {
+        if(result != null && result.substring(0, 2) != powerCommand)  // We don't handle Zone 2.
             return;
 
         socket.end();
 
         var oldDeviceState = device.state.onoff;
 
-        if(result == null || result == 'PWSTANDBY')
+        if(result == null || result == powerCommand + offCommand)
             device.state.onoff = false;
         else
             device.state.onoff = true;
@@ -403,7 +429,10 @@ module.exports.capabilities.onoff.set = function( device_data, onoff, callback )
     Homey.log("Setting Denon device power.");
     device.state.onoff = onoff;
 
-    WriteCloseRequest(device.settings['com.moz.denon.settings.ip'], onoff ? 'PWON' : 'PWSTANDBY'); 
+    var powerCommand =  GetSettingByDevice(device, SETTING_KEY_POWER_COMMAND, "PW");
+    var offCommand =    powerCommand == "PW" ? "STANDBY" : "OFF";
+
+    WriteCloseRequest(GetSettingByDevice(device, SETTING_KEY_IP, DEFAULT_IP), onoff ? powerCommand+'ON' : powerCommand+offCommand); 
 
     module.exports.realtime( device_data, 'onoff', device.state.onoff); // also emit the new value to realtime this produced Insights logs and triggers Flows
 
