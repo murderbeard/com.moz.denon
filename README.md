@@ -30,6 +30,9 @@ Currently most important features are implemented but there are several things t
 * Zone2 control 
 * Trigger cards
 
+##Version 0.1.8
+* Added mobile card for onoff, other capabilities such as volume are for a future release.
+
 ##Version 0.1.7
 * Added option to use ZM instead of PW to only control the Main Zone. Zone2 would also get turned on/off on devices with multiple zones, single zone devices should use PW.
 * Added more AUX channels for 3100-W and N8: AUX2, AUXA, AUXB, AUXC and AUXD.

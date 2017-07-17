@@ -3,7 +3,7 @@
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.7",
+    "version": "0.1.8",
     "compatibility": "1.x",
     "author": {
         "name": "Ralph Schaafsma",
@@ -33,6 +33,13 @@
             },
             "class": "other",
             "capabilities": [ "onoff" ],
+            "mobile": {
+                "components": [ {
+                        "id": "icon",
+                        "capabilities": [ "onoff" ]
+                    }
+                ]
+            },
             "pair": [
                 {
                     "id": "start"
