@@ -2,33 +2,52 @@
 
 Control your Denon AVR network enabled receiver with your Homey.
 
-This apps connects via Telnet to your Denon receiver. Please make sure it is set up to have a static IP address as well as enabling Network Control. (Setup->Network->Network Control on your receiver)
+This apps connects via Telnet to your Denon receiver. Please make sure your receiver set up to have a static IP address as well as enabling Network Control. (Setup->Network->Network Control on your receiver)
 
 ##Features
 Action Flow Cards:
 * Turn your Denon AVR on and off, or toggle
-* Increase or decrease volume
-* Set volume to a fixed db value
+* Increase or decrease volume by a relative amount
+* Set volume to a fixed dB value
 * Mute/Unmute or toggle mute
 * Set input source from a dropdown list.
 
 Condition Flow Cards:
 * Is the Denon AVR powered on?
-* Is the Denon AVR set to selected input source?
+* Is the Denon AVR set to a selected input source?
 
 
 ##Supported Devices
-Probably most Denon models that are network control enabled through Telnet should work.
+Most Denon models that are network control enabled through Telnet should work.
 ##Confirmed
-* Denon AVR-X2200W
+* AVR-X1000
+* AVR-X1200W
+* AVR-X2200W
+* AVR-X2300W
+* AVR-X3100W
+* AVR-X3200W
+* AVR-3808A
+* AVR-X4200W
+* AVR-X4000
+* AVR-X5200
+* AVR-X6200
+* CEOL RCD-N8
 
 Please let me know if your Denon model is supported.
 
 
 ##Future Things
-Currently most important features are implemented but there are several things that would be nice to have.
-* Zone2 control 
-* Trigger cards
+Most important features are implemented but there are some things that would be nice to have. If there is some demand for it these might be implemented until then the base functionality remains as is.
+* Zone2 control; channel select and volume.
+* Trigger cards.
+* More mobile control; volume and channel controls.
+
+
+##Version 0.1.9
+* Organized and cleaned up some code.
+* Value label for volume cards is now 'dB' instead of 'db'.
+* Updated compatibility list and some text in README.
+* Fixed JPEGs for the Athom app store having a white background of 253 instead of 255.
 
 ##Version 0.1.8
 * Added mobile card for onoff, other capabilities such as volume are for a future release.

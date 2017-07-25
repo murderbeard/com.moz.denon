@@ -3,7 +3,7 @@
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.8",
+    "version": "0.1.9",
     "compatibility": "1.x",
     "author": {
         "name": "Ralph Schaafsma",
@@ -207,7 +207,7 @@
                 "min": "-10",
                 "max": "10",
                 "step": "0.5",
-                "label": "db",
+                "label": "dB",
                 "labelMultiplier": "1.0",
                 "labelDecimals": "1"
             }]
@@ -231,7 +231,7 @@
                 "min": "0",
                 "max": "90",
                 "step": "0.5",
-                "label": "db",
+                "label": "dB",
                 "labelMultiplier": "1.0",
                 "labelDecimals": "1"
             }]

@@ -20,7 +20,9 @@ const DEFAULT_IP = "192.168.0.1";
 const SETTING_KEY_IP = "com.moz.denon.settings.ip";
 const SETTING_KEY_POWER_COMMAND = "com.moz.denon.settings.powercommand";
 
-function AsBytes(str) {
+
+//////////////////          Network Control            //////////////////
+function StringToBytes(str) {
     var array = new Buffer(str.length + 1);
 
     for(var i = 0; i < str.length; i++) {
@@ -52,7 +54,7 @@ function Loop() {
                     };
 
                     var client = commands[ipaddress].socket.connect(cd, () => {
-                        client.write(AsBytes(command), () => {
+                        client.write(StringToBytes(command), () => {
                             client.end();
 
                             if(callback != null && callback != undefined)
@@ -89,7 +91,7 @@ function Loop() {
                     };
 
                     var client = commands[ipaddress].socket.connect(cd, () => {
-                        client.write(AsBytes(command));
+                        client.write(StringToBytes(command));
                     });
 
                     client.on('data', (data)=> {
@@ -116,7 +118,7 @@ function Loop() {
                 nf(ip, nc.command, nc.callback);
             }
         } else {
-            // We're busy. Waiting on completion.
+            // We're busy. Waiting on completion or no commands to process.
         }
     }
     
@@ -147,107 +149,8 @@ function ReadRequest(ip, command, callback) {
     ASyncRequest(READ_MODE, ip, command, callback);
 }
 
-// As getSettings is async we cannot guarantee that settings are loaded.
-// This is a problem for the capabilities on_off check.
-function InitDevice( device_data ) {
-    devices[ device_data.id ] = {};
-    devices[ device_data.id ].state = { onoff: true };
-    devices[ device_data.id ].data = device_data;
 
-    Homey.log("Initializing Device, getting settings...");
-    module.exports.getSettings(device_data, function(err, settings) {
-        Homey.log("Requested settings for " + device_data.id + ", result: " + err + ' ' + settings);
-        Homey.log(settings);
-        devices[device_data.id].settings = settings;
-    });
-}
-
-// the `init` method is called when your driver is loaded for the first time
-module.exports.init = function( devices_data, callback ) {
-    devices_data.forEach(function(device_data){
-        InitDevice( device_data );
-    })
-
-    Homey.log("Initializing Denon Device Driver");
-
-    Loop();
-    
-    callback();
-}
-
-// the `added` method is called is when pairing is done and a device has been added
-module.exports.added = function( device_data, callback ) {
-    Homey.log("New Denon AVR added");
-    Homey.log(device_data);
-
-    InitDevice( device_data );
-
-    callback( null, true ); // Deferring this callback doesn't stop the capabilities.on_off check.
-}
-
-// the `delete` method is called when a device has been deleted by a user
-module.exports.deleted = function( device_data, callback ) {
-    delete devices[ device_data.id ];
-    callback( null, true );
-}
-
-module.exports.renamed = function(device_data, new_name) {
-	// update the devices array we keep
-	devices[device_data.id].data.name = new_name;
-};
-
-// the `pair` method is called when a user start pairing
-module.exports.pair = function( socket ) {
-    socket.on('list_devices', function( data, callback ){
-        Homey.log("Device Pairing method called.");
-        Homey.log(data);
-        var device_data = {
-            name: "New Denon Amplifier",
-            data: {
-                id: data.id
-            }
-        }
-
-        callback( null, [ device_data ] );
-    });
-}
-
-/// SETTINGS HANDLING
-module.exports.settings = function(device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback) {
-    Homey.log("Getting new settings for " + device_data.id + ": " + newSettingsObj);
-    // We just slave-ishly assume anything is okay for an IP address.
-    // And assuming this device exists in our list.
-    devices[device_data.id].settings = newSettingsObj;
-
-    callback(null, true);
-}
-
-function GetSettingByDeviceID(deviceID, settingID, defaultValue) {
-    var device = devices[deviceID];
-
-    if(device == undefined || device == null)
-        return defaultValue;
-
-    return GetSettingByDevice(device, settingID, defaultValue);
-}
-
-function GetSettingByDeviceData(deviceData, settingID, defaultValue) {
-    var device = devices[deviceData.id];
-
-    if(device == undefined || device == null)
-        return defaultValue;
-    
-    return GetSettingByDevice(device, settingID, defaultValue);
-}
-
-function GetSettingByDevice(device, settingID, defaultValue) {
-    if( device == undefined || device == null || device.settings == undefined || device.settings[settingID] == undefined)
-        return defaultValue;
-    else
-        return device.settings[settingID];
-}
-
-/// ACTION HANDLING
+//////////////////          Flow cards            //////////////////
 Homey.manager('flow').on('action.com.moz.denon.actions.poweron', function(callback, args) {
     module.exports.capabilities.onoff.set(args.device, true, (error, result) => {});
 	callback(null, true);
@@ -287,7 +190,7 @@ Homey.manager('flow').on('action.com.moz.denon.actions.mutetoggle', function(cal
         if(result != null) {
             var mute = ((result == 'MUON') ? 'MUOFF' : 'MUON');
 
-            socket.write(AsBytes(mute), () => {
+            socket.write(StringToBytes(mute), () => {
                 socket.end();
             });     
         } else {
@@ -331,7 +234,7 @@ Homey.manager('flow').on('action.com.moz.denon.actions.volume', function(callbac
 
             Homey.log("Adjusting volume from " + volumeAsString + " with length of " + volumeAsString.length + " parsed as (" + volume + ") to (" + newVolume + ") sent as (" + paddedResult + ")");
 
-            socket.write(AsBytes('MV'+paddedResult), () => {
+            socket.write(StringToBytes('MV'+paddedResult), () => {
                 socket.end();
             });            
         } else {
@@ -378,7 +281,105 @@ Homey.manager('flow').on('condition.com.moz.denon.conditions.channel', function(
     });
 });
 
-// CAPABILITIES 
+
+//////////////////          Initialization            //////////////////
+function InitDevice( device_data ) {
+    devices[ device_data.id ] = {};
+    devices[ device_data.id ].state = { onoff: true };
+    devices[ device_data.id ].data = device_data;
+
+    Homey.log("Initializing Device, getting settings...");
+    module.exports.getSettings(device_data, function(err, settings) {                                   // NOTE: this is an async operation so the fact the device exists doesn't mean its settings do.
+        Homey.log("Requested settings for " + device_data.id + ", result: " + err + ' ' + settings);
+        Homey.log(settings);
+        devices[device_data.id].settings = settings;
+
+        // TODO: Should we manually try to get the power state here?
+    });
+}
+
+module.exports.init = function( devices_data, callback ) {      // the 'init' method is called when the driver is loaded for the first time
+    Homey.log("Initializing Denon Device Driver");
+
+    devices_data.forEach(function(device_data) {
+        InitDevice( device_data );
+    })
+
+    Loop(); // Start the command buffer handling loop.
+    callback();
+}
+
+
+//////////////////          Device Handling            //////////////////
+module.exports.added = function( device_data, callback ) {      // the 'added' method is called is when pairing is done and a device has been added
+    Homey.log("New Denon AVR added");
+    Homey.log(device_data);
+
+    InitDevice( device_data );
+
+    callback( null, true ); // Deferring this callback doesn't stop the capabilities.on_off check.
+}
+
+module.exports.deleted = function( device_data, callback ) {    // the 'delete' method is called when a device has been deleted by a user
+    delete devices[ device_data.id ];
+    callback( null, true );
+}
+
+module.exports.renamed = function(device_data, new_name) {      // update the devices array we keep
+	devices[device_data.id].data.name = new_name;
+};
+
+module.exports.pair = function( socket ) {                      // the 'pair' method is called when a user starts pairing
+    socket.on('list_devices', function( data, callback ){
+        Homey.log("Device Pairing method called.");
+        Homey.log(data);
+        var device_data = {
+            name: "New Denon Amplifier",
+            data: {
+                id: data.id
+            }
+        }
+
+        callback( null, [ device_data ] );
+    });
+}
+
+
+//////////////////          Settings            //////////////////
+module.exports.settings = function(device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback) {
+    Homey.log("Getting new settings for " + device_data.id + ": " + newSettingsObj);
+    devices[device_data.id].settings = newSettingsObj;  // We just slave-ishly assume anything is okay for an IP address. And assuming that this device exists in our list.
+
+    callback(null, true);
+}
+
+function GetSettingByDeviceID(deviceID, settingID, defaultValue) {
+    var device = devices[deviceID];
+
+    if(device == undefined || device == null)
+        return defaultValue;
+
+    return GetSettingByDevice(device, settingID, defaultValue);
+}
+
+function GetSettingByDeviceData(deviceData, settingID, defaultValue) {
+    var device = devices[deviceData.id];
+
+    if(device == undefined || device == null)
+        return defaultValue;
+    
+    return GetSettingByDevice(device, settingID, defaultValue);
+}
+
+function GetSettingByDevice(device, settingID, defaultValue) {
+    if( device == undefined || device == null || device.settings == undefined || device.settings[settingID] == undefined)
+        return defaultValue;
+    else
+        return device.settings[settingID];
+}
+
+
+//////////////////          Capabilities            //////////////////
 function GetDeviceByData( device_data ) {
     var device = devices[ device_data.id ];
     if( typeof device === 'undefined' ) {
@@ -388,8 +389,7 @@ function GetDeviceByData( device_data ) {
     }
 }
 
-// these are the methods that respond to get/set calls from Homey
-// for example when a user pressed a button
+// NOTE: A device's settings are supplied async; as such we need to check if its settings exist.
 module.exports.capabilities = {};
 module.exports.capabilities.onoff = {};
 module.exports.capabilities.onoff.get = function( device_data, callback ) {
