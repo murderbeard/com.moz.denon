@@ -1,10 +1,15 @@
 {
     "id": "com.moz.denon",
+    "sdk": 2,
     "name": {
         "en": "Denon AVR"
     },
-    "version": "0.1.9",
-    "compatibility": "1.x",
+    "description": {
+        "en": "Control your Denon AVR with Homey."
+    },
+    "category": "appliances",
+    "version": "0.2.0",
+    "compatibility": ">=1.5.0",
     "author": {
         "name": "Ralph Schaafsma",
         "email": "ralph.schaafsma@gmail.com"
@@ -13,11 +18,6 @@
       "large": "./assets/images/large.png",
       "small": "./assets/images/small.png"
     },
-    "category": "appliances",
-    "description": {
-    	"en": "Denon AVR receiver app for Homey",
-		"nl": "Denon AVR versterker app voor Homey"
-    },
     "dependencies": {
     		"net": "*"
     },
@@ -25,7 +25,8 @@
         {
             "id": "com.moz.denon.driver",
             "name": {
-                "en": "Denon AVR"
+                "en": "Denon AVR",
+                "nl": "Denon AVR"
             },
             "images": {
                 "large": "drivers/com.moz.denon.driver/assets/images/large.png",
@@ -92,6 +93,21 @@
                             }
                         }
                     ]
+                }]
+            }, {
+                "type": "group",
+                "label": {
+                    "en": "About custom commands",
+                    "nl": "Over speciale commando's"
+                },
+                "children": [{
+                    "id": "com.moz.denon.settings.aboutcustomcommands",
+                    "type": "label",
+                    "label": {
+                        "en": "Custom Commands:",
+                        "nl": "Speciale Commando's (EN):"
+                    },
+                    "value": "Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>."
                 }]
             }]
         }
@@ -277,6 +293,28 @@
                             { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                             { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
                             { "id": "AUXD",   "label": { "en": "Digital In" } }]
+            }]
+        }, {
+            "id": "com.moz.denon.actions.customcommand",
+            "title": {
+                "en": "Send Custom Command (see device settings for more info)",
+                "nl": "Verstuur Speciaal Commando (zie apparaat instellingen voor meer info)"
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }, {
+                "name": "command",
+                "type": "text",
+                "placeholder": {
+                    "en": "(e.g. SIDVD or PWON)",
+                    "nl": "(bijv. SIDVD of PWON)"
+                }
             }]
         }], 
         "conditions": [ {

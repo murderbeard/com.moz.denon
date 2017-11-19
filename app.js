@@ -1,5 +1,11 @@
-"use strict";
+'use strict';
 
-module.exports.init = function( devices_data, callback ) {
-	Homey.log("Init");
+const Homey = require('homey');
+
+class DenonApp extends Homey.App {
+	onInit() {
+		this.log("Denon App Booted.");
+	}
 }
+
+module.exports = DenonApp;

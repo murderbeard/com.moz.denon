@@ -11,10 +11,15 @@ Action Flow Cards:
 * Set volume to a fixed dB value
 * Mute/Unmute or toggle mute
 * Set input source from a dropdown list.
+* Send customized commands. Add functionality that the app does not support by default: missing input sources for your specific device or setting surround mode for example.
 
 Condition Flow Cards:
 * Is the Denon AVR powered on?
 * Is the Denon AVR set to a selected input source?
+
+
+##About Custom Commands
+Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>.
 
 
 ##Supported Devices
@@ -42,6 +47,13 @@ Most important features are implemented but there are some things that would be 
 * Trigger cards.
 * More mobile control; volume and channel controls.
 
+
+#Version 0.2.0
+* Custom command flow card added. Send your own data to your Denon device.
+* Converted to Homey SDK 2. Promises used where applicable.
+* Flow cards now show errors; failed to send, IP not found, etc.
+* Device specific settings are stored and not requested during each command request.
+* Command processing loop now stops when the command buffer is empty.
 
 ##Version 0.1.9
 * Organized and cleaned up some code.
