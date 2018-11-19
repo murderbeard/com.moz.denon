@@ -47,6 +47,8 @@ Most important features are implemented but there are some things that would be 
 * Trigger cards.
 * More mobile control; volume and channel controls.
 
+#Version 0.2.1
+* Power toggling could cause the socket not getting closed when the receiver returns an error message, blocking any new requests to the receiver.
 
 #Version 0.2.0
 * Custom command flow card added. Send your own data to your Denon device.

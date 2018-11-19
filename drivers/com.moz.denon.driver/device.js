@@ -78,7 +78,7 @@ class DenonDevice extends Homey.Device {
 	
 		this.readRequest(powerCommand + '?', (err, result, socket) => {
 			if(err == null && result.substring(0, 2) != powerCommand) {  // We don't handle Zone 2.
-				this.log("Ignoring other zone power states.");
+				this.log("Ignoring other zone power states. result = (" + result + ")");
 				return;
 			}
 
@@ -149,7 +149,14 @@ class DenonDevice extends Homey.Device {
 						var status = data.toString();
 						status = status.substring(0, status.length-1); // We already remove CR here for convience.
 
-						callback(null, status, client);
+						var err = null;
+
+						if(status.startsWith("SSINFAI")) {
+							this.log("Denon returned error message: " + status);
+							err = new Error("Denon returned error message: " + status);
+						}
+
+						callback(err, status, client);
 					});
 
 					client.on('close', ()=> {
