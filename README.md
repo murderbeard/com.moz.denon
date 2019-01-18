@@ -47,6 +47,12 @@ Most important features are implemented but there are some things that would be 
 * Trigger cards.
 * More mobile control; volume and channel controls.
 
+#Version 1.0.0
+* Updated icon to be centered properly in app.
+* Readability of advanced settings improved.
+* Reduced time before a receiver is considered unreachable. Reducing the time before a proper error shows.
+* Bumped version number to be semantically compatible with Athom's conventions.
+
 #Version 0.2.1
 * Power toggling could cause the socket not getting closed when the receiver returns an error message, blocking any new requests to the receiver.
 

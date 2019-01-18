@@ -9,6 +9,7 @@ const TELNET_PORT = 23;
 const TELNET_RECONNECT_TIME_OUT = 100;  // Time before we consider a socket truly closed. Denon AVR doesn't accept a new connection while the old is open for some time.
 const LOOP_DELAY = 50;                  // The time in between command buffer handling.
 const LOOP_DELAY_LIMP_MODE = 200		// When receiving warnings we switch to this delay time.
+const SOCKET_TIMEOUT = 1000				// Time after which we consider the socket unconnectable.
 
 const DEFAULT_IP = "192.168.0.1";
 const SETTING_KEY_IP = "com.moz.denon.settings.ip";
@@ -82,17 +83,14 @@ class DenonDevice extends Homey.Device {
 				return;
 			}
 
-			socket.end();
-
-			var oldDeviceState = this.getCapabilityValue("onoff");
-
-			if(err != null || result == powerCommand + offCommand)
-				this.setCapabilityValue("onoff", false);
-			else
-				this.setCapabilityValue("onoff", true);
+			if(err == null) {
+				socket.end();
+				//var oldDeviceState = this.getCapabilityValue("onoff");
+				this.setCapabilityValue("onoff", !(result == powerCommand + offCommand));
+			}
 
 			if(callback != null)
-				return callback(err, this.getCapabilityValue("onoff") );
+				return callback(err, this.getCapabilityValue("onoff"));
 		});
 	}
 
@@ -102,16 +100,25 @@ class DenonDevice extends Homey.Device {
 			let mode = newCommand.mode;
 			let command = newCommand.command;
 			let callback = newCommand.callback;
-			
+
 			// Asserts.
 			if(mode == READ_MODE && (callback == null || callback == undefined)) {
 				this.log("Cannot use READ_MODE and not provide a callback!");	// Ignore and continue on.
 			} else {
 				this.socket = new net.Socket();
+
 				var cd = {
 					port: TELNET_PORT,
 					host: this.ip
 				};
+
+				this.socket.setTimeout(SOCKET_TIMEOUT, ()=>{
+					this.log("Failed to connect. Socket timed out.");
+					this.socket.destroy();
+
+					if(callback != null && callback != undefined)
+						callback(new Error("Failed to connect to receiver. Socket timed out.\n\nIs your IP correct and is Network Control enabled on the receiver?"), false, null);						
+				});
 
 				if(mode == WRITE_CLOSE_MODE) {
 					this.log("Sending write-close command " + command);
@@ -301,7 +308,8 @@ toggleMuteAction.register().registerRunListener((args, state) => {
 						resolve(true);
 					});
 				} else {
-					socket.end();
+					if(socket != null)
+						socket.end();
 					reject(err);
 				}
 			});
@@ -346,7 +354,9 @@ volumeAction.register().registerRunListener((args, state) => {
 						resolve(true);
 					});            
 				} else {
-					socket.end();
+					if(socket != null)
+						socket.end();
+					
 					reject(err);
 				}
 			});
@@ -399,7 +409,8 @@ channelCondition.register().registerRunListener(( args, state ) => {
 					args.device.log("Current Source is: " + result);
 					resolve(result == 'SI' + args.channel);
 				} else {
-					socket.end();
+					if(socket != null)
+						socket.end();
 					reject(err);
 				}
 			});

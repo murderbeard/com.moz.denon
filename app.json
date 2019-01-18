@@ -8,7 +8,7 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "0.2.1",
+    "version": "1.0.0",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Ralph Schaafsma",
@@ -34,13 +34,6 @@
             },
             "class": "other",
             "capabilities": [ "onoff" ],
-            "mobile": {
-                "components": [ {
-                        "id": "icon",
-                        "capabilities": [ "onoff" ]
-                    }
-                ]
-            },
             "pair": [
                 {
                     "id": "start"
@@ -67,29 +60,33 @@
                     "id": "com.moz.denon.settings.ip",
                     "type": "text",
                     "label": {
-                        "en": "IP address of your Denon Amplifier",
-                        "nl": "IP adres van de Denon Versterker"
+                        "en": "IP address",
+                        "nl": "IP adres"
                     },
                     "value": ""
                 }, {
                     "id": "com.moz.denon.settings.powercommand",
                     "type": "radio",
+                    "hint": {
+                        "en": "The way power is toggled depends on your model having multiple zones. If you experience Zone2 gettings powered on/off try settings this value to true.\n\nIn the background this means power commands are sent using ZM instead of PW.",
+                        "nl": "De manier waarop de versterker aan en uit wordt gezet hangt af of uw model meerdere zones heeft. Als Zone2 ook onbedoeld aan/uit gaat zet dan deze instelling aan.\n\nIn de achtergrond betekent dit dat power commando's worden verstuurd met ZM in plaats van PW."
+                    },
                     "label": {
-                        "en": "Ignore Zone2",
-                        "nl": "Negeer Zone2"
+                        "en": "Multiple Zones Supported",
+                        "nl": "Meerdere Zones Ondersteund"
                     },
                     "value": "PW",
                     "values": [ {
                             "id": "PW",
                             "label": {
-                                "en": "Power commands are sent using the PW command. Works on all devices.",
-                                "nl": "Aan/Uit commando's worden met het PW commando verstuurd. Werkt met alle apparaten."
+                                "en": "No",
+                                "nl": "Nee"
                             }
                         }, {
                             "id": "ZM",
                             "label": {
-                                "en": "Power commands are sent using the ZM command. Only works on devices with multiple zones. Use this if you experience Zone2 also being powered on/off.",
-                                "nl": "Aan/Uit commando's worden met het ZM commando verstuurd. Werkt alleen op apparaten met meerdere zones. Gebruik dit als Zone2 ook onbedoeld aan/uit gaat."
+                                "en": "Yes",
+                                "nl": "Ja"
                             }
                         }
                     ]
@@ -97,8 +94,8 @@
             }, {
                 "type": "group",
                 "label": {
-                    "en": "About custom commands",
-                    "nl": "Over speciale commando's"
+                    "en": "Read more about custom commands",
+                    "nl": "Lees meer over speciale commando's"
                 },
                 "children": [{
                     "id": "com.moz.denon.settings.aboutcustomcommands",
