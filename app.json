@@ -33,7 +33,7 @@
                 "small": "drivers/com.moz.denon.driver/assets/images/small.png"
             },
             "class": "other",
-            "capabilities": [ "onoff" ],
+            "capabilities": [ "onoff", "volume_set", "volume_up", "volume_down", "volume_mute" ],
             "pair": [
                 {
                     "id": "start"

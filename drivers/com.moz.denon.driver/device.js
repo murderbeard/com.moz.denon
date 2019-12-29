@@ -14,10 +14,22 @@ const SOCKET_TIMEOUT = 1000				// Time after which we consider the socket unconn
 const DEFAULT_IP = "192.168.0.1";
 const SETTING_KEY_IP = "com.moz.denon.settings.ip";
 const SETTING_KEY_POWER_COMMAND = "com.moz.denon.settings.powercommand";
+const CAPABILITY_VOLUME_SET = "volume_set";
+const CAPABILITY_VOLUME_UP = "volume_up";
+const CAPABILITY_VOLUME_DOWN = "volume_down";
+const CAPABILITY_VOLUME_MUTE = "volume_mute";
+const CMD_VOLUME_MASTER_SET = "MV";
+const CMD_VOLUME_MASTER_UP = "MVUP";
+const CMD_VOLUME_MASTER_DOWN = "MVDOWN";
+const CMD_VOLUME_MUTE = "MU"
 
 class DenonDevice extends Homey.Device {
     onInit() {
 		this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_SET, this.onCapabilityVolumeSet.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_UP, this.onCapabilityVolumeUp.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_DOWN, this.onCapabilityVolumeDown.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_MUTE, this.onCapabilityVolumeMute.bind(this))
 		
 		this.ip = this.getSetting(SETTING_KEY_IP, DEFAULT_IP);
 		this.powerCommand = this.getSetting(SETTING_KEY_POWER_COMMAND, "PW");
@@ -27,8 +39,16 @@ class DenonDevice extends Homey.Device {
 		this.commandList = new Array();
 		this.socket = null;
 		this.log("Denon device initialized with IP:", this.ip);
-
 		this.getPowerState();
+		
+		if(this.hasCapability(CAPABILITY_VOLUME_MUTE)) {
+			this.getIsMuted();
+		}
+		
+		if(this.hasCapability(CAPABILITY_VOLUME_SET)) {
+			this.getVolume();
+		}
+
 		this.commandLoop();
 	}
 
@@ -71,6 +91,103 @@ class DenonDevice extends Homey.Device {
 		return promise;
 	}
 
+	onCapabilityVolumeSet( value, opts, callback) {
+		
+		this.log("Setting Denon device volume to " + value);
+		let device = this;
+		let volume = parseInt(parseFloat(value) * 100);
+		let volumeStr = volume.toString();
+
+		// If value is smaller than 10, we need to add a zero infront otherwise it's rejected by the protocol
+		if(volume < 10) {
+			volumeStr = '0' + volumeStr;
+		}
+
+		let promise = new Promise(
+			function (resolve, reject) {
+				device.writeCloseRequest(CMD_VOLUME_MASTER_SET + volumeStr, (err, result, socket) => {
+					if(err == null) {
+						device.setCapabilityValue(CAPABILITY_VOLUME_SET, value);
+						resolve(value);
+					} else {
+						reject(err);
+					}
+				});		
+			}
+		);
+
+		return promise;
+	}
+
+	onCapabilityVolumeUp( value, opts, callback) {
+		this.log("Volume up");
+		let device = this;
+		
+		let promise = new Promise(
+			function (resolve, reject) {
+				device.writeCloseRequest(CMD_VOLUME_MASTER_UP, (err, result, socket) => {
+					if(err == null) {
+						device.getVolume();
+						resolve(value);
+					} else {
+						reject(err);
+					}
+				});		
+			}
+		);
+
+		return promise;
+	}
+
+	onCapabilityVolumeDown( value, opts, callback) {
+		this.log("Volume down");
+		let device = this;
+
+		let promise = new Promise(
+			function (resolve, reject) {
+				device.writeCloseRequest(CMD_VOLUME_MASTER_DOWN, (err, result, socket) => {
+					if(err == null) {
+						device.getVolume();
+						resolve(value);
+					} else {
+						reject(err);
+					}
+				});		
+			}
+		);
+
+		return promise;
+	}
+
+	onCapabilityVolumeMute( value, opts, callback) {
+		this.log("Mute");
+		let device = this;
+
+		let promise = new Promise(
+			function (resolve, reject) {
+				try {
+					device.getIsMuted();
+				} catch (err) {
+					reject(err);
+				}
+				
+				let isMuted = device.getCapabilityValue(CAPABILITY_VOLUME_MUTE);
+				let muteCmd = isMuted ? CMD_VOLUME_MUTE + "OFF" : CMD_VOLUME_MUTE + "ON";
+
+				device.writeCloseRequest(muteCmd, (errWrite, resultWrite, socket) => {
+					if(errWrite == null) {
+						device.getIsMuted();
+						resolve(value);
+					} else {
+						reject(errWrite);
+					}
+				});
+			}
+		);
+
+		return promise;
+	}
+
 	// callback(err, result)
 	getPowerState(callback) {
 		this.log("Getting Denon Device Power Status.");
@@ -91,6 +208,52 @@ class DenonDevice extends Homey.Device {
 
 			if(callback != null)
 				return callback(err, this.getCapabilityValue("onoff"));
+		});
+	}
+
+	getIsMuted(callback) {
+		this.log("Getting Denone Device mute status.");
+		let device = this;
+
+		device.readRequest(CMD_VOLUME_MUTE + '?', (errRead, resultRead, socket) => {
+			let isMuted = false;
+			if (errRead == null) {
+				socket.end();
+				try{
+					isMuted = resultRead.toString().includes('OFF')? false : true;
+				} catch (err) {
+					this.log(err);
+				}
+				
+
+				this.setCapabilityValue(CAPABILITY_VOLUME_MUTE, isMuted);
+			} 
+			
+			if (callback != null) {
+				return callback(errRead, this.getCapabilityValue(CAPABILITY_VOLUME_MUTE));
+			}
+		});
+	}
+
+	getVolume(callback) {
+		let device = this;
+
+		device.readRequest(CMD_VOLUME_MASTER_SET + '?', (errRead, resultRead, socket) => {
+			if (errRead == null) {
+				socket.end();
+				try {
+					// result is of format: MV575,MVMAX 98
+					// result can be of format: MV57,MVMAX 98
+					let masterVolume = resultRead.toString().split(',')[0].substring(2, 4);
+					this.setCapabilityValue(CAPABILITY_VOLUME_SET, parseFloat(masterVolume)/100.0);
+				} catch (err) {
+					this.log(err);
+				}
+			} 
+			
+			if (callback != null) {
+				return callback(errRead, this.getCapabilityValue(CAPABILITY_VOLUME_SET));
+			}
 		});
 	}
 
