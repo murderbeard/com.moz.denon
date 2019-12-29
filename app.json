@@ -8,12 +8,21 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Ralph Schaafsma",
         "email": "ralph.schaafsma@gmail.com"
     },
+    "contributors": {
+        "developers": [
+          {
+            "name": "Tim Kouters",
+            "email": "timkouters@gmail.com"
+          }
+        ]
+    },
+    "source": "https://github.com/murderbeard/com.moz.denon",
     "images": {
       "large": "./assets/images/large.png",
       "small": "./assets/images/small.png"

@@ -34,6 +34,7 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-3808A
 * AVR-X4200W
 * AVR-X4000
+* AVR-X4100W
 * AVR-X5200
 * AVR-X6200
 * CEOL RCD-N8
@@ -45,7 +46,10 @@ Please let me know if your Denon model is supported.
 Most important features are implemented but there are some things that would be nice to have. If there is some demand for it these might be implemented until then the base functionality remains as is.
 * Zone2 control; channel select and volume.
 * Trigger cards.
-* More mobile control; volume and channel controls.
+* More mobile control; channel controls.
+
+#Version 1.0.1
+* Mobile control for volume
 
 #Version 1.0.0
 * Updated icon to be centered properly in app.
