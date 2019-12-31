@@ -25,6 +25,22 @@ const CMD_VOLUME_MUTE = "MU"
 
 class DenonDevice extends Homey.Device {
     onInit() {
+		if (!this.hasCapability(CAPABILITY_VOLUME_SET)) {
+			this.addCapability(CAPABILITY_VOLUME_SET);
+		}
+
+		if (!this.hasCapability(CAPABILITY_VOLUME_UP)) {
+			this.addCapability(CAPABILITY_VOLUME_UP);
+		}
+
+		if (!this.hasCapability(CAPABILITY_VOLUME_DOWN)) {
+			this.addCapability(CAPABILITY_VOLUME_DOWN);
+		}
+
+		if (!this.hasCapability(CAPABILITY_VOLUME_MUTE)) {
+			this.addCapability(CAPABILITY_VOLUME_MUTE);
+		}
+
 		this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_SET, this.onCapabilityVolumeSet.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_UP, this.onCapabilityVolumeUp.bind(this))
