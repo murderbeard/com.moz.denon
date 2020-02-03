@@ -8,7 +8,7 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Ralph Schaafsma",
@@ -90,21 +90,6 @@
                             }
                         }
                     ]
-                }]
-            }, {
-                "type": "group",
-                "label": {
-                    "en": "Read more about custom commands",
-                    "nl": "Lees meer over speciale commando's"
-                },
-                "children": [{
-                    "id": "com.moz.denon.settings.aboutcustomcommands",
-                    "type": "label",
-                    "label": {
-                        "en": "Custom Commands:",
-                        "nl": "Speciale Commando's (EN):"
-                    },
-                    "value": "Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>."
                 }]
             }]
         }
@@ -294,8 +279,12 @@
         }, {
             "id": "com.moz.denon.actions.customcommand",
             "title": {
-                "en": "Send Custom Command (see device settings for more info)",
-                "nl": "Verstuur Speciaal Commando (zie apparaat instellingen voor meer info)"
+                "en": "Send Custom Command",
+                "nl": "Verstuur Speciaal Commando"
+            },
+            "titleFormatted": {
+                "en": "Send Custom Command: [[command]]",
+                "nl": "Verstuur Speciaal Commando: [[command]]"
             },
             "args": [{
                 "name": "device",
@@ -312,7 +301,11 @@
                     "en": "(e.g. SIDVD or PWON)",
                     "nl": "(bijv. SIDVD of PWON)"
                 }
-            }]
+            }],
+            "hint": {
+                "en": "Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>.",
+                "nl": "Speciale commando's geven de mogelijkheid om specifieke data te versturen naar uw Denon versterker. In het algemeen zijn dit korte commando's in hoofdletters zoals: MVUP, MVDOWN, SIDVD of Z2ON. U kunt de door uw versterker ondersteunde commando's opzoeken door op het web te zoeken naar '(uw_versterker_serie bijv. X1200W) denon telnet protocol'. Denon biedt PDF bestanden aan voor veel van zijn versterkers; hierin staan de commando's die ondersteund worden door de specifieke versterker. De Denon AVR app voegt automatisch de vereiste <CR> toe aan het ingevulde commando."
+            }
         }], 
         "conditions": [ {
             "id": "com.moz.denon.conditions.power",
