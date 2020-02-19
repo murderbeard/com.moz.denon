@@ -8,40 +8,149 @@ const READ_MODE = 1;                    // We write a command and return the res
 const TELNET_PORT = 23;
 const TELNET_RECONNECT_TIME_OUT = 100;  // Time before we consider a socket truly closed. Denon AVR doesn't accept a new connection while the old is open for some time.
 const LOOP_DELAY = 50;                  // The time in between command buffer handling.
-const LOOP_DELAY_LIMP_MODE = 200		// When receiving warnings we switch to this delay time.
-const SOCKET_TIMEOUT = 1000				// Time after which we consider the socket unconnectable.
+const LOOP_DELAY_LIMP_MODE = 200;		// When receiving warnings we switch to this delay time.
+const SOCKET_TIMEOUT = 1000;			// Time after which we consider the socket unconnectable.
+
+const STATUS_COMMAND_COUNT = 3;			// Number of commands before a complete update has been received.
+const STATUS_MAX_RETRY_COUNT = 5;		// Times before we consider a denon device unreachable and we stop trying to update.
+const STATUS_DELAY = 2000;				// Update time between polls	
+const STATUS_DELAY_UNREACHABLE = 60000;	// Update time after too many failed attempts.			
 
 const DEFAULT_IP = "192.168.0.1";
 const SETTING_KEY_IP = "com.moz.denon.settings.ip";
 const SETTING_KEY_POWER_COMMAND = "com.moz.denon.settings.powercommand";
 
+const CAPABILITY_ONOFF = "onoff";
+const CAPABILITY_VOLUME_SET = "volume_set";
+const CAPABILITY_VOLUME_UP = "volume_up";
+const CAPABILITY_VOLUME_DOWN = "volume_down";
+const CAPABILITY_VOLUME_MUTE = "volume_mute";
+
+const CMD_VOLUME_MASTER = "MV";
+const CMD_VOLUME_MASTER_UP = "MVUP";
+const CMD_VOLUME_MASTER_DOWN =  "MVDOWN";
+const CMD_VOLUME_MUTE = "MU"
+
+const LOG_LEVEL_EVERYTHING = 1000;		// Mostly useful for development. Any deployed build can just use EVERYTHING.
+const LOG_LEVEL_DEBUG = 100;			
+const LOG_LEVEL_WARNING = 25;
+const LOG_LEVEL_ERROR = 0;
+const LOG_LEVEL_ESSENTIAL = 0;
+
+const LOG_LEVEL = LOG_LEVEL_EVERYTHING;
+
 class DenonDevice extends Homey.Device {
+	writeLog(what, level) {
+		if(level == undefined)
+			level = LOG_LEVEL_ESSENTIAL;
+
+		if(level <= LOG_LEVEL)
+			this.log(what);
+	}
+
     onInit() {
-		this.registerCapabilityListener('onoff', this.onCapabilityOnoff.bind(this))
+		if(!this.hasCapability(CAPABILITY_ONOFF)) {
+			this.addCapability(CAPABILITY_ONOFF);
+		}
+
+		if(!this.hasCapability(CAPABILITY_VOLUME_SET)) {
+			this.addCapability(CAPABILITY_VOLUME_SET);
+		}
+
+		if(!this.hasCapability(CAPABILITY_VOLUME_UP)) {
+			this.addCapability(CAPABILITY_VOLUME_UP);
+		}
+
+		if(!this.hasCapability(CAPABILITY_VOLUME_DOWN)) {
+			this.addCapability(CAPABILITY_VOLUME_DOWN);
+		}
+
+		if(!this.hasCapability(CAPABILITY_VOLUME_MUTE)) {
+			this.addCapability(CAPABILITY_VOLUME_MUTE);
+		}
+
+		this.registerCapabilityListener(CAPABILITY_ONOFF, this.onCapabilityOnoff.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_SET, this.onCapabilityVolumeSet.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_UP, this.onCapabilityVolumeUp.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_DOWN, this.onCapabilityVolumeDown.bind(this))
+		this.registerCapabilityListener(CAPABILITY_VOLUME_MUTE, this.onCapabilityVolumeMute.bind(this))
 		
 		this.ip = this.getSetting(SETTING_KEY_IP, DEFAULT_IP);
 		this.powerCommand = this.getSetting(SETTING_KEY_POWER_COMMAND, "PW");
 		this.offCommand = this.powerCommand == "PW" ? "STANDBY" : "OFF";
 
+		this.statusRetryCount = STATUS_MAX_RETRY_COUNT;
+		this.statusCommandsRemain = 0;
+		this.statusCommandsFailed = 0;
+
 		this.looping = true;
 		this.commandList = new Array();
 		this.socket = null;
-		this.log("Denon device initialized with IP:", this.ip);
+		this.writeLog("Denon device initialized with IP: " + this.ip);
 
-		this.getPowerState();
+		this.updateDeviceStatus();
+
 		this.commandLoop();
+	}
+	
+	updateDeviceStatus() {
+		if(this.statusCommandsFailed > 0) {
+			if(this.statusRetryCount > 0) {
+				this.statusRetryCount--;
+
+				if(this.statusRetryCount == 0) {
+					this.writeLog("Denon Device failed to respond: " + STATUS_MAX_RETRY_COUNT + " times. Going into slow poll mode.");
+				}
+			}
+		} else {
+			if(this.statusRetryCount == 0) {
+				this.statusRetryCount = STATUS_MAX_RETRY_COUNT;
+				this.writeLog("Denon Device responded after sustained failures. Going back into fast poll mode.");
+			}
+		}
+
+		this.statusCommandsRemain = STATUS_COMMAND_COUNT;
+		this.statusCommandsFailed = 0;
+
+		this.getPowerState((err, result)=> {
+			if(err != null)
+				this.statusCommandsFailed++;
+
+			this.statusCommandsRemain--;
+
+			if(this.statusCommandsRemain == 0)
+				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+		});	
+		this.getIsMuted((err, result)=> {
+			if(err != null)
+				this.statusCommandsFailed++;
+
+			this.statusCommandsRemain--;
+
+			if(this.statusCommandsRemain == 0)
+				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+		});
+		this.getVolume((err, result)=> {
+			if(err != null)
+				this.statusCommandsFailed++;
+
+			this.statusCommandsRemain--;
+
+			if(this.statusCommandsRemain == 0)
+				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+		});
 	}
 
     onAdded() {
-        this.log("Denon device added.");
+        this.writeLog("Denon device added.");
     }
 
     onDeleted() {
-        this.log("Denon device deleted.");
+        this.writeLog("Denon device deleted.");
     }
 	
 	onSettings( oldSettingsObj, newSettingsObj, changedKeysArr, callback ) {
-		this.log("Settings updated.");
+		this.writeLog("Settings updated.");
 		callback( null, true );
 
 		this.ip = this.getSetting(SETTING_KEY_IP, DEFAULT_IP);
@@ -50,7 +159,7 @@ class DenonDevice extends Homey.Device {
 	}
 
     onCapabilityOnoff( value, opts, callback ) {
-		this.log("Setting Denon device power to " + value);
+		this.writeLog("Setting Denon device power to " + value);
 		let powerCommand =  this.powerCommand;
 		let offCommand =    this.offCommand;
 		let device = this;
@@ -59,7 +168,7 @@ class DenonDevice extends Homey.Device {
 			function (resolve, reject) {
 				device.writeCloseRequest(value ? powerCommand+'ON' : powerCommand+offCommand, (err, result, socket) => {
 					if(err == null) {
-						device.setCapabilityValue("onoff", value);
+						device.setCapabilityValue(CAPABILITY_ONOFF, value);
 						resolve(value);
 					} else {
 						reject(err);
@@ -71,26 +180,135 @@ class DenonDevice extends Homey.Device {
 		return promise;
 	}
 
+	onCapabilityVolumeSet( value, opts, callback) {
+		this.writeLog("Setting Denon device volume to " + value);
+																									// Again; assuming all Denon's stop at 98.0db.
+		let volumeWholeNumber = parseInt(value * 98);												// The following values can be sent safely.
+		let volumeRemainder = (parseInt(value * 980) - (volumeWholeNumber*10)) > 0 ? 5 : 0;			// 050 == 5db
+																									// 05  == 5db
+		let volume = (volumeWholeNumber*10) + volumeRemainder;										// 005 == 0.5db
+		let volumeStr = volume.toString();															// 000 == 0.0db
+																									// 105 == 10.5db
+
+		// If value is smaller than 10, we need to add a zero infront otherwise it's rejected by the protocol // 980 == 98.0db
+		if(volumeWholeNumber < 10) {
+			volumeStr = '0' + volumeStr;
+		}
+
+		this.writeLog("Volume set: " + value + " to " + volumeStr);
+
+		return this.writeCloseRequestPromise(CMD_VOLUME_MASTER + volumeStr);
+		// Note: we don't set the capability value here but at updateDeviceStatus() next time we check. 
+	}
+
+	onCapabilityVolumeUp( value, opts, callback) {						// NOTE: Volume value gets updated during updateDeviceStatus();
+		this.writeLog("Increasing Denon Device Volume.");
+		return this.writeCloseRequestPromise(CMD_VOLUME_MASTER_UP);
+	}
+
+	onCapabilityVolumeDown( value, opts, callback) {					// NOTE: Volume value gets updated during updateDeviceStatus();
+		this.writeLog("Decreasing Denon Device Volume.");
+		return this.writeCloseRequestPromise(CMD_VOLUME_MASTER_DOWN);
+	}
+
+	onCapabilityVolumeMute( value, opts, callback) {
+		this.writeLog("Setting Denon Device Mute: " + value);
+		let device = this;
+
+		let promise = new Promise(
+			function (resolve, reject) {
+				var isMuted = device.getCapabilityValue(CAPABILITY_VOLUME_MUTE);
+				var muteCmd = isMuted ? CMD_VOLUME_MUTE + "OFF" : CMD_VOLUME_MUTE + "ON";
+
+				device.writeCloseRequest(muteCmd, (err, result, socket) => {
+					if(err == null) {
+						//device.getIsMuted();	// NOTE: We do not have to request an update from the amplifier here as any corrections will be sent during updateDeviceStatus().
+						resolve(value);
+					} else {
+						reject(errWrite);
+					}
+				});
+			}
+		);
+
+		return promise;
+	}
+
 	// callback(err, result)
 	getPowerState(callback) {
-		this.log("Getting Denon Device Power Status.");
+		this.writeLog("Getting Denon Device Power Status.", LOG_LEVEL_DEBUG);
 		let powerCommand =  this.powerCommand;
 		let offCommand =    this.offCommand;
 	
 		this.readRequest(powerCommand + '?', (err, result, socket) => {
 			if(err == null && result.substring(0, 2) != powerCommand) {  // We don't handle Zone 2.
-				this.log("Ignoring other zone power states. result = (" + result + ")");
+				this.writeLog("Ignoring other zone power states. result = (" + result + ")");
 				return;
 			}
 
 			if(err == null) {
 				socket.end();
-				//var oldDeviceState = this.getCapabilityValue("onoff");
-				this.setCapabilityValue("onoff", !(result == powerCommand + offCommand));
+				//var oldDeviceState = this.getCapabilityValue(CAPABILITY_ONOFF);
+				this.setCapabilityValue(CAPABILITY_ONOFF, !(result == powerCommand + offCommand));
+			} else {
+				if(socket != null)
+					socket.end();
 			}
 
 			if(callback != null)
-				return callback(err, this.getCapabilityValue("onoff"));
+				return callback(err, this.getCapabilityValue(CAPABILITY_ONOFF));
+		});
+	}	
+	
+	getIsMuted(callback) {
+		this.writeLog("Getting Denon Device Mute Status.", LOG_LEVEL_DEBUG);
+
+		this.readRequest(CMD_VOLUME_MUTE + '?', (err, result, socket) => {
+			if(err == null) {
+				socket.end();
+
+				var isMuted = result.includes('ON');
+				var isNotMuted = result.includes('OFF');
+
+				//this.writeLog("Mute state: " + result + ": " + isNotMuted + ", " + isMuted);
+				// A fail safe if we receive something unexpected; one must be true.
+				if(isNotMuted || isMuted)
+					this.setCapabilityValue(CAPABILITY_VOLUME_MUTE, isMuted);
+			} else {
+				if(socket != null)
+					socket.end();
+			}
+
+			if(callback != null)
+				return callback(err, this.getCapabilityValue(CAPABILITY_VOLUME_MUTE));
+		});
+	}
+
+	getVolume(callback) {
+		this.writeLog("Getting Denon Device Volume Status.", LOG_LEVEL_DEBUG);
+
+		this.readRequest(CMD_VOLUME_MASTER + '?', (err, result, socket) => {
+			if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
+				return;
+
+			if(err == null) {
+				socket.end();
+
+				var volumeAsString = result.substring(2);
+				var volume = parseFloat(volumeAsString);
+
+				if(volumeAsString.length == 2)	// Two digits is a whole number, three digits means .5.
+					volume *= 10;
+
+				//this.writeLog("Volume string is: " + volumeAsString + ", " + volume);
+				this.setCapabilityValue(CAPABILITY_VOLUME_SET, volume / 980);		// Assumes all denon devices stop at 98db.
+			} else {
+				if(socket != null)
+					socket.end();
+			}
+
+			if (callback != null)
+				return callback(err, this.getCapabilityValue(CAPABILITY_VOLUME_SET));
 		});
 	}
 
@@ -103,7 +321,7 @@ class DenonDevice extends Homey.Device {
 
 			// Asserts.
 			if(mode == READ_MODE && (callback == null || callback == undefined)) {
-				this.log("Cannot use READ_MODE and not provide a callback!");	// Ignore and continue on.
+				this.writeLog("Cannot use READ_MODE and not provide a callback!");	// Ignore and continue on.
 			} else {
 				this.socket = new net.Socket();
 
@@ -113,7 +331,7 @@ class DenonDevice extends Homey.Device {
 				};
 
 				this.socket.setTimeout(SOCKET_TIMEOUT, ()=>{
-					this.log("Failed to connect. Socket timed out.");
+					this.writeLog(command + " < Failed to connect. Socket timed out.");
 					this.socket.destroy();
 
 					if(callback != null && callback != undefined)
@@ -121,7 +339,7 @@ class DenonDevice extends Homey.Device {
 				});
 
 				if(mode == WRITE_CLOSE_MODE) {
-					this.log("Sending write-close command " + command);
+					this.writeLog(command + " < Sending write-close command.", LOG_LEVEL_DEBUG);
 					let client = this.socket.connect(cd, () => {
 						client.write(StringToBytes(command), () => {
 							client.end();
@@ -134,19 +352,19 @@ class DenonDevice extends Homey.Device {
 					client.on('close', ()=> {
 						setTimeout(function() {
 							this.socket = null; 
-							this.log("Socket closed");
+							this.writeLog(command + " < Socket closed", LOG_LEVEL_DEBUG);
 						}.bind(this), TELNET_RECONNECT_TIME_OUT);
 					});
 
 					client.on('error', (err) => {
-						this.log(err);
+						this.writeLog(err);
 						client.end();
 
 						if(callback != null && callback != undefined)
 							callback(err, false, null);
 					});
 				} else if(newCommand.mode == READ_MODE) {
-					this.log("Sending read command " + command);
+					this.writeLog(command + " < Sending read command.", LOG_LEVEL_DEBUG);
 
 					let client = this.socket.connect(cd, () => {
 						client.write(StringToBytes(command));
@@ -159,9 +377,13 @@ class DenonDevice extends Homey.Device {
 						var err = null;
 
 						if(status.startsWith("SSINFAI")) {
-							this.log("Denon returned error message: " + status);
-							err = new Error("Denon returned error message: " + status);
+							this.writeLog(command + " < Denon returned error message: " + status);
+							err = new Error(command + " < Denon returned error message: " + status);
+
+							// TODO: The socket is not automatically closed on this error.
 						}
+
+						this.writeLog(command + " < Returned result: " + status, LOG_LEVEL_DEBUG);
 
 						callback(err, status, client);
 					});
@@ -169,12 +391,12 @@ class DenonDevice extends Homey.Device {
 					client.on('close', ()=> {
 						setTimeout(function() {
 							this.socket = null;
-							this.log("Socket closed");
+							this.writeLog(command + " < Socket closed.", LOG_LEVEL_DEBUG);
 						}.bind(this), TELNET_RECONNECT_TIME_OUT);
 					});
 
 					client.on('error', (err) => {
-						this.log(err);
+						this.writeLog(command + " < Error: " + err);
 						callback(err, null, client); 
 					});
 				}
@@ -186,7 +408,7 @@ class DenonDevice extends Homey.Device {
 			this.looping = true;
 		} else {
 			// Nothing to do
-			this.log("Commandbuffer empty. Stopping loop.");
+			this.writeLog("Commandbuffer empty. Stopping loop.", LOG_LEVEL_DEBUG);
 			this.looping = false;
 		}
 	}

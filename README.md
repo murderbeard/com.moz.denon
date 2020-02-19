@@ -1,5 +1,3 @@
-# Denon AVR Network Control for Athom Homey
-
 Control your Denon AVR network enabled receiver with your Homey.
 
 This apps connects via Telnet to your Denon receiver. Please make sure your receiver set up to have a static IP address as well as enabling Network Control. (Setup->Network->Network Control on your receiver)
@@ -29,9 +27,13 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-X1200W
 * AVR-X2200W
 * AVR-X2300W
+* AVR-X2600H DAB
+* AVR-X3000
 * AVR-X3100W
 * AVR-X3200W
+* AVR-X3500H
 * AVR-3808A
+* AVR-X4100W
 * AVR-X4200W
 * AVR-X4000
 * AVR-X5200
@@ -44,8 +46,12 @@ Please let me know if your Denon model is supported.
 ## Future Things
 Most important features are implemented but there are some things that would be nice to have. If there is some demand for it these might be implemented until then the base functionality remains as is.
 * Zone2 control; channel select and volume.
-* Trigger cards.
-* More mobile control; volume and channel controls.
+* More trigger cards. (on/off trigger card is available)
+* More mobile controls; channel select.
+
+## Version 1.0.1
+* Mobile control for volume setting and muting (volume_set, volume_up, volume_down, volume_mute capabilities added).
+* Polling feature added; will automatically detect changes to power, muting and volume.
 
 ## Version 1.0.0
 * Updated icon to be centered properly in app.

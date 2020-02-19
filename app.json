@@ -13,7 +13,16 @@
     "author": {
         "name": "Ralph Schaafsma",
         "email": "ralph.schaafsma@gmail.com"
+    },    
+    "contributors": {
+        "developers": [
+            {
+                "name": "Tim Kouters",
+                "email": "timkouters@gmail.com"
+            }
+        ]
     },
+    "source": "https://github.com/murderbeard/com.moz.denon",
     "images": {
       "large": "./assets/images/large.png",
       "small": "./assets/images/small.png"
@@ -33,7 +42,7 @@
                 "small": "drivers/com.moz.denon.driver/assets/images/small.png"
             },
             "class": "other",
-            "capabilities": [ "onoff" ],
+            "capabilities": [ "onoff", "volume_set", "volume_up", "volume_down", "volume_mute" ],
             "pair": [
                 {
                     "id": "start"
@@ -310,8 +319,8 @@
         "conditions": [ {
             "id": "com.moz.denon.conditions.power",
             "title": {
-                "en": "Powered On",
-                "nl": "Staat aan"
+                "en": "Powered On (obsolete card)",
+                "nl": "Staat aan (verouderde kaart)"
             },
              "args": [{
                 "name": "device",

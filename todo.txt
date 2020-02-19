@@ -1,0 +1,7 @@
+- Remove confirmed from issues on github.
+- Update network control text to include something about power saving: https://github.com/murderbeard/com.moz.denon/issues/6
+- Update duplicate readme texts in on the store.
+
+future
+- investigate zone 2 gui buttons: https://github.com/murderbeard/com.moz.denon/issues/5
+- increase default input source list? Custom input source list?
