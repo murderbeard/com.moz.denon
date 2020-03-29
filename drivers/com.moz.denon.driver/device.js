@@ -85,6 +85,7 @@ class DenonDevice extends Homey.Device {
 
 		this.looping = true;
 		this.commandList = new Array();
+		this.commandID = 0;
 		this.socket = null;
 		this.writeLog("Denon device initialized with IP: " + this.ip);
 
@@ -288,6 +289,19 @@ class DenonDevice extends Homey.Device {
 		this.writeLog("Getting Denon Device Volume Status.", LOG_LEVEL_DEBUG);
 
 		this.readRequest(CMD_VOLUME_MASTER + '?', (err, result, socket) => {
+			// NOTE: it is possible to get MV205\r\nMVMAX 695
+			// This would break the promise flow(?) and will never close the socket or return it's promise.
+			// So we need to account for either; two split messages; a single message; or a single message with two lines.
+			// Is the second message dependant on if we close the socket fast enough after the first message?
+			// Why does another device use \r\n and another separates it by time(?).
+
+			// Attempt to recover from a dual line
+			// NOTE: Requires more testing. There are two points where this happens; see flow card also.
+			if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
+				result = result.split("\r")[0];
+				this.writeLog("getVolume received a dual line response. Splitting up the message...")
+			}
+
 			if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
 				return;
 
@@ -318,6 +332,8 @@ class DenonDevice extends Homey.Device {
 			let mode = newCommand.mode;
 			let command = newCommand.command;
 			let callback = newCommand.callback;
+			let commandLogInfo = "[" + this.commandID + ", " + command + "]";
+			this.commandID = (this.commandID + 1) % 255;
 
 			// Asserts.
 			if(mode == READ_MODE && (callback == null || callback == undefined)) {
@@ -331,7 +347,7 @@ class DenonDevice extends Homey.Device {
 				};
 
 				this.socket.setTimeout(SOCKET_TIMEOUT, ()=>{
-					this.writeLog(command + " < Failed to connect. Socket timed out.");
+					this.writeLog(commandLogInfo +  " < Failed to connect. Socket timed out.");
 					this.socket.destroy();
 
 					if(callback != null && callback != undefined)
@@ -339,7 +355,7 @@ class DenonDevice extends Homey.Device {
 				});
 
 				if(mode == WRITE_CLOSE_MODE) {
-					this.writeLog(command + " < Sending write-close command.", LOG_LEVEL_DEBUG);
+					this.writeLog(commandLogInfo +  " < Sending write-close command.", LOG_LEVEL_DEBUG);
 					let client = this.socket.connect(cd, () => {
 						client.write(StringToBytes(command), () => {
 							client.end();
@@ -352,7 +368,7 @@ class DenonDevice extends Homey.Device {
 					client.on('close', ()=> {
 						setTimeout(function() {
 							this.socket = null; 
-							this.writeLog(command + " < Socket closed", LOG_LEVEL_DEBUG);
+							this.writeLog(commandLogInfo +  " < Socket closed", LOG_LEVEL_DEBUG);
 						}.bind(this), TELNET_RECONNECT_TIME_OUT);
 					});
 
@@ -364,7 +380,7 @@ class DenonDevice extends Homey.Device {
 							callback(err, false, null);
 					});
 				} else if(newCommand.mode == READ_MODE) {
-					this.writeLog(command + " < Sending read command.", LOG_LEVEL_DEBUG);
+					this.writeLog(commandLogInfo +  " < Sending read command.", LOG_LEVEL_DEBUG);
 
 					let client = this.socket.connect(cd, () => {
 						client.write(StringToBytes(command));
@@ -377,13 +393,13 @@ class DenonDevice extends Homey.Device {
 						var err = null;
 
 						if(status.startsWith("SSINFAI")) {
-							this.writeLog(command + " < Denon returned error message: " + status);
-							err = new Error(command + " < Denon returned error message: " + status);
+							this.writeLog(commandLogInfo +  " < Denon returned error message: " + status);
+							err = new Error(commandLogInfo +  " < Denon returned error message: " + status);
 
 							// TODO: The socket is not automatically closed on this error.
 						}
 
-						this.writeLog(command + " < Returned result: " + status, LOG_LEVEL_DEBUG);
+						this.writeLog(commandLogInfo +  " < Returned result: " + status, LOG_LEVEL_DEBUG);
 
 						callback(err, status, client);
 					});
@@ -391,12 +407,12 @@ class DenonDevice extends Homey.Device {
 					client.on('close', ()=> {
 						setTimeout(function() {
 							this.socket = null;
-							this.writeLog(command + " < Socket closed.", LOG_LEVEL_DEBUG);
+							this.writeLog(commandLogInfo +  " < Socket closed.", LOG_LEVEL_DEBUG);
 						}.bind(this), TELNET_RECONNECT_TIME_OUT);
 					});
 
 					client.on('error', (err) => {
-						this.writeLog(command + " < Error: " + err);
+						this.writeLog(commandLogInfo +  " < Error: " + err);
 						callback(err, null, client); 
 					});
 				}
@@ -550,6 +566,13 @@ volumeAction.register().registerRunListener((args, state) => {
 	let promise = new Promise(
 		function (resolve, reject) {
 			args.device.readRequest('MV?', (err, result, socket) => {
+				// Attempt to recover from a dual line
+				// NOTE: Requires more testing. There are two points where this happens; see flow card also.
+				if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
+					result = result.split("\r")[0];
+					this.writeLog("volumeAction received a dual line response. Splitting up the message...")
+				}
+
 				if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
 					return;
 
