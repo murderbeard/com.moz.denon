@@ -49,9 +49,17 @@ Most important features are implemented but there are some things that would be 
 * More trigger cards. (on/off trigger card is available)
 * More mobile controls; channel select.
 
-## Version 1.1.1
+
+For changelogs please visit: https://github.com/murderbeard/com.moz.denon
+
+
+## Version 1.1.3
+* Fixed an issue where the volume action card could cause a crash if it received a 'dual line message' from the receiver.
+
+## Version 1.1.2
 * Fixed an issue where a volume response message from MV? could be discarded erroneously. Leaving the socket open and resulting in a confusing or possibly even broken series of events.
 * Command messages are given a number which makes it easier to follow the flow of events in the log file.
+* Changelogs removed from README.TXT per Athom request.
 
 ## Version 1.1.0
 * Mobile control for volume setting and muting (volume_set, volume_up, volume_down, volume_mute capabilities added).

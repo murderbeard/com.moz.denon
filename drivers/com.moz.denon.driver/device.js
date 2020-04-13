@@ -570,7 +570,7 @@ volumeAction.register().registerRunListener((args, state) => {
 				// NOTE: Requires more testing. There are two points where this happens; see flow card also.
 				if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
 					result = result.split("\r")[0];
-					this.writeLog("volumeAction received a dual line response. Splitting up the message...")
+					args.device.log("volumeAction received a dual line response. Splitting up the message...");
 				}
 
 				if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.

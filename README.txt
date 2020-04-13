@@ -49,54 +49,5 @@ Most important features are implemented but there are some things that would be 
 * More trigger cards. (on/off trigger card is available)
 * More mobile controls; channel select.
 
-Version 1.1.1
-* Fixed an issue where a volume response message from MV? could be discarded erroneously. Leaving the socket open and resulting in a confusing or possibly even broken series of events.
-* Command messages are given a number which makes it easier to follow the flow of events in the log file.
 
-Version 1.1.0
-* Mobile control for volume setting and muting (volume_set, volume_up, volume_down, volume_mute capabilities added).
-* Polling feature added; will automatically detect changes to power, muting and volume.
-
-Version 1.0.0
-* Updated icon to be centered properly in app.
-* Readability of advanced settings improved.
-* Reduced time before a receiver is considered unreachable. Reducing the time before a proper error shows.
-* Bumped version number to be semantically compatible with Athom's conventions.
-
-Version 0.2.1
-* Power toggling could cause the socket not getting closed when the receiver returns an error message, blocking any new requests to the receiver.
-
-Version 0.2.0
-* Custom command flow card added. Send your own data to your Denon device.
-* Converted to Homey SDK 2. Promises used where applicable.
-* Flow cards now show errors; failed to send, IP not found, etc.
-* Device specific settings are stored and not requested during each command request.
-* Command processing loop now stops when the command buffer is empty.
-
-Version 0.1.9
-* Organized and cleaned up some code.
-* Value label for volume cards is now 'dB' instead of 'db'.
-* Updated compatibility list and some text in README.
-* Fixed JPEGs for the Athom app store having a white background of 253 instead of 255.
-
-Version 0.1.8
-* Added mobile card for onoff, other capabilities such as volume are for a future release.
-
-Version 0.1.7
-* Added option to use ZM instead of PW to only control the Main Zone. Zone2 would also get turned on/off on devices with multiple zones, single zone devices should use PW.
-* Added more AUX channels for 3100-W and N8: AUX2, AUXA, AUXB, AUXC and AUXD.
-
-Version 0.1.6
-* Fixed crash in capabilities.onoff.set.
-* Power flow cards now use module.exports.capabilities, removing duplicate code and making the onoff state data available for insights.
-
-Version 0.1.5
-* A change in Homey meant device status could be requested before settings were saved when pairing. Failsafe added.
-
-Version 0.1.4
-* Fix for volume adjust not parsing whole dB numbers correctly which could cause large jumps in dB.
-* Fix for volume adjust sending negative dB values, which is ignored by the AVR but makes no sense to let happen. 
-* Reponse packet telling that the AVR is on max volume is not considered a real volume request response. (Caused no problems but still a bug.)
-
-Version 0.1.3
-* Fix 'substring' of null crash for channel condition flow card.
+For changelogs please visit: https://github.com/murderbeard/com.moz.denon
