@@ -53,6 +53,10 @@ Most important features are implemented but there are some things that would be 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 
 
+
+## Version 1.1.4
+* Fixed crash when receiving an error when trying to use the muting capability. 
+
 ## Version 1.1.3
 * Fixed an issue where the volume action card could cause a crash if it received a 'dual line message' from the receiver.
 

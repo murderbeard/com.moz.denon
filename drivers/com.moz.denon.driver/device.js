@@ -226,7 +226,7 @@ class DenonDevice extends Homey.Device {
 						//device.getIsMuted();	// NOTE: We do not have to request an update from the amplifier here as any corrections will be sent during updateDeviceStatus().
 						resolve(value);
 					} else {
-						reject(errWrite);
+						reject(err);
 					}
 				});
 			}
