@@ -59,7 +59,8 @@ Most important features are implemented but there are some things that would be 
 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 
-
+## Version 1.1.6
+* Deleted devices are handled correctly. All running tasks are killed and callbacks cleared. Before deleted devices would linger due to status and command timeouts.
 
 ## Version 1.1.5
 * Volume clamping added (both in app.json and ensuring it in device.js).
@@ -67,7 +68,6 @@ For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 * Moved source asset files into .src to exclude it from builds.
 * Added brandColor, dark gray fitting Denon's overall look.
  
-
 ## Version 1.1.4
 * Fixed crash when receiving an error when trying to use the muting capability. 
 

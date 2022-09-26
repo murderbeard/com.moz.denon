@@ -80,13 +80,17 @@ class DenonDevice extends Homey.Device {
 		this.offCommand = this.powerCommand == "PW" ? "STANDBY" : "OFF";
 
 		this.statusRetryCount = STATUS_MAX_RETRY_COUNT;
-		this.statusCommandsRemain = 0;
+		this.statusCommandsRemain = 0;	// Each status update requires three separate requests for: power, muted and volume.
 		this.statusCommandsFailed = 0;
 
-		this.looping = true;
-		this.commandList = new Array();
-		this.commandID = 0;
+		this.looping = true;			// Is the device actively working through commands?
+		this.commandList = new Array();	// Backlog of commands to process.
+		this.commandID = 0;				// ID for the current command, useful for logging.	
 		this.socket = null;
+
+		this.statusTimeout = null;		// Timeout awaiting the next status update.
+		this.commandTimeout = null;		// Timeout awaiting the next command loop. (might make looping:boolean redundant).
+
 		this.writeLog("Denon device initialized with IP: " + this.ip);
 
 		this.updateDeviceStatus();
@@ -110,6 +114,7 @@ class DenonDevice extends Homey.Device {
 			}
 		}
 
+		this.statusTimeout = null;
 		this.statusCommandsRemain = STATUS_COMMAND_COUNT;
 		this.statusCommandsFailed = 0;
 
@@ -120,7 +125,7 @@ class DenonDevice extends Homey.Device {
 			this.statusCommandsRemain--;
 
 			if(this.statusCommandsRemain == 0)
-				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+				this.statusTimeout = setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
 		});	
 		this.getIsMuted((err, result)=> {
 			if(err != null)
@@ -129,7 +134,7 @@ class DenonDevice extends Homey.Device {
 			this.statusCommandsRemain--;
 
 			if(this.statusCommandsRemain == 0)
-				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+				this.statusTimeout = setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
 		});
 		this.getVolume((err, result)=> {
 			if(err != null)
@@ -138,7 +143,7 @@ class DenonDevice extends Homey.Device {
 			this.statusCommandsRemain--;
 
 			if(this.statusCommandsRemain == 0)
-				setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+				this.statusTimeout = setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
 		});
 	}
 
@@ -148,6 +153,14 @@ class DenonDevice extends Homey.Device {
 
     onDeleted() {
         this.writeLog("Denon device deleted.");
+
+		for(var i = 0; i < this.commandList.length; i++) {	
+			this.commandList[i].callback = null;	// Destroy any callbacks for commands in progress.
+		}
+
+		this.commandList.length = 0;				// Clear any backlogged commands.
+		clearTimeout(this.statusTimeout);			// Stop the status update loop.
+		clearTimeout(this.commandTimeout);			// Stop command loop.
     }
 	
 	onSettings( oldSettingsObj, newSettingsObj, changedKeysArr, callback ) {
@@ -423,11 +436,12 @@ class DenonDevice extends Homey.Device {
 		} 
 		
 		if(this.socket != null || this.commandList.length > 0) {
-			setTimeout(this.commandLoop.bind(this), LOOP_DELAY);
+			this.commandTimeout = setTimeout(this.commandLoop.bind(this), LOOP_DELAY);
 			this.looping = true;
 		} else {
 			// Nothing to do
 			this.writeLog("Commandbuffer empty. Stopping loop.", LOG_LEVEL_DEBUG);
+			this.commandTimeout = null;
 			this.looping = false;
 		}
 	}

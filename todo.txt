@@ -3,6 +3,9 @@
 - Update duplicate readme texts in on the store.
 
 - Investigate removal of device for updateDeviceStatus() and other loops that might get stuck running on a garbage removed device.
+- Sort the device list nicely.
+- Investigate if Zone2 as a separate device makes things easier. Or just see if Zone2 is doable.
+- Investigate Source as part of the status update - adding a source changed event card.
 
 future
 - investigate zone 2 gui buttons: https://github.com/murderbeard/com.moz.denon/issues/5
