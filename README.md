@@ -61,6 +61,7 @@ For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 
 ## Version 1.1.6
 * Deleted devices are handled correctly. All running tasks are killed and callbacks cleared. Before deleted devices would linger due to status and command timeouts.
+* Added titleFormatted to flow cards: Selected As Source, Adjust Volume, Set Volume and Select Source. For increased readability.
 
 ## Version 1.1.5
 * Volume clamping added (both in app.json and ensuring it in device.js).

@@ -208,6 +208,10 @@
                 "en": "Adjust Volume",
                 "nl": "Pas Volume Aan"
             },
+            "titleFormatted": {
+                "en": "Adjust Volume: [[db]]",
+                "nl": "Pas Volume Aan: [[db]]"
+            },
             "args": [{
                 "name": "device",
                 "type": "device",
@@ -232,6 +236,10 @@
                 "en": "Set Volume",
                 "nl": "Zet Volume"
             },
+            "titleFormatted": {
+                "en": "Set Volume: [[db]]",
+                "nl": "Zet Volume: [[db]]"
+            },
             "args": [{
                 "name": "device",
                 "type": "device",
@@ -255,6 +263,10 @@
             "title": {
                 "en": "Select Source",
                 "nl": "Kies Kanaal"
+            },
+            "titleFormatted": {
+                "en": "Select Source: [[channel]]",
+                "nl": "Kies Kanaal: [[channel]]"
             },
             "args": [{
                 "name": "device",
@@ -344,6 +356,10 @@
             "title": {
                 "en": "Selected As Source",
                 "nl": "Kanaal Is Actief"
+            },
+            "titleFormatted": {
+                "en": "Selected As Source: [[channel]]",
+                "nl": "Kanaal Is Actief: [[channel]]"
             },
              "args": [{
                 "name": "device",
