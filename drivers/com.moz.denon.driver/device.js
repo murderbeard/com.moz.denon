@@ -315,7 +315,10 @@ class DenonDevice extends Homey.Device {
 					volume *= 10;
 
 				//this.writeLog("Volume string is: " + volumeAsString + ", " + volume);
-				this.setCapabilityValue(CAPABILITY_VOLUME_SET, volume / 980);		// Assumes all denon devices stop at 98db.
+				var normalizedVolume = volume / 980;
+				normalizedVolume = normalizedVolume < 0 ? 0 : normalizedVolume > 1 ? 1 : normalizedVolume;	// Be sure to cap it 0-1.
+
+				this.setCapabilityValue(CAPABILITY_VOLUME_SET, normalizedVolume);		// Assumes all denon devices stop at 98db.
 			} else {
 				if(socket != null)
 					socket.end();
@@ -483,7 +486,7 @@ class DenonDevice extends Homey.Device {
 
 /////////////////          Helpers	            //////////////////
 function StringToBytes(str) {
-    var array = new Buffer(str.length + 1);
+    var array = Buffer.alloc(str.length + 1);
 
     for(var i = 0; i < str.length; i++) {
         array[i] = str.charCodeAt(i);

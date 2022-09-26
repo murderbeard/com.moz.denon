@@ -2,6 +2,8 @@
 - Update network control text to include something about power saving: https://github.com/murderbeard/com.moz.denon/issues/6
 - Update duplicate readme texts in on the store.
 
+- Investigate removal of device for updateDeviceStatus() and other loops that might get stuck running on a garbage removed device.
+
 future
 - investigate zone 2 gui buttons: https://github.com/murderbeard/com.moz.denon/issues/5
 - increase default input source list? Custom input source list?

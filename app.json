@@ -1,6 +1,7 @@
 {
     "id": "com.moz.denon",
     "sdk": 2,
+    "brandColor": "#151d24",
     "name": {
         "en": "Denon AVR"
     },
@@ -8,7 +9,7 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "compatibility": ">=1.5.0",
     "author": {
         "name": "Ralph Schaafsma",
@@ -43,6 +44,13 @@
             },
             "class": "other",
             "capabilities": [ "onoff", "volume_set", "volume_up", "volume_down", "volume_mute" ],
+            "capabilitiesOptions": {
+                "volume_set": {
+                    "min": 0,
+                    "max": 1,
+                    "decimals": 2
+                }
+            },
             "pair": [
                 {
                     "id": "start"

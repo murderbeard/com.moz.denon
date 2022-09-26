@@ -22,9 +22,11 @@ Custom commands allow you to specify custom data to send to your Denon device. T
 
 ## Supported Devices
 Most Denon models that are network control enabled through Telnet should work.
+
 ## Confirmed
 * AVR-X1000
 * AVR-X1200W
+* AVR-X1300W
 * AVR-X2200W
 * AVR-X2300W
 * AVR-X2600H DAB
@@ -38,7 +40,12 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-X4000
 * AVR-X5200
 * AVR-X6200
+* AVR-S960H
 * CEOL RCD-N8
+* AVC-X4700H
+* DRA-800H
+* AVR-X1700H
+* AVR-X1600 DAB (custom commands required)
 
 Please let me know if your Denon model is supported.
 
@@ -53,6 +60,13 @@ Most important features are implemented but there are some things that would be 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 
 
+
+## Version 1.1.5
+* Volume clamping added (both in app.json and ensuring it in device.js).
+* 'new Buffer' replaced with 'Buffer.alloc', due to deprecation. 
+* Moved source asset files into .src to exclude it from builds.
+* Added brandColor, dark gray fitting Denon's overall look.
+ 
 
 ## Version 1.1.4
 * Fixed crash when receiving an error when trying to use the muting capability. 

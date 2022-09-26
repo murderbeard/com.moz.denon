@@ -22,9 +22,11 @@ Custom commands allow you to specify custom data to send to your Denon device. T
 
 Supported Devices
 Most Denon models that are network control enabled through Telnet should work.
+
 Confirmed
 * AVR-X1000
 * AVR-X1200W
+* AVR-X1300W
 * AVR-X2200W
 * AVR-X2300W
 * AVR-X2600H DAB
@@ -38,7 +40,12 @@ Confirmed
 * AVR-X4000
 * AVR-X5200
 * AVR-X6200
+* AVR-S960H
 * CEOL RCD-N8
+* AVC-X4700H
+* DRA-800H
+* AVR-X1700H
+* AVR-X1600 DAB (custom commands required)
 
 Please let me know if your Denon model is supported.
 
