@@ -48,6 +48,19 @@ class DenonDevice extends Homey.Device {
 			this.log(what);
 	}
 
+	/////////////////          Helpers	            //////////////////
+	StringToBytes(str) {
+		var array = Buffer.alloc(str.length + 1);
+
+		for(var i = 0; i < str.length; i++) {
+			array[i] = str.charCodeAt(i);
+		}
+
+		array[str.length] = 13; // CR
+
+		return array;
+	}
+
     onInit() {
 		if(!this.hasCapability(CAPABILITY_ONOFF)) {
 			this.addCapability(CAPABILITY_ONOFF);
@@ -68,6 +81,8 @@ class DenonDevice extends Homey.Device {
 		if(!this.hasCapability(CAPABILITY_VOLUME_MUTE)) {
 			this.addCapability(CAPABILITY_VOLUME_MUTE);
 		}
+
+		this.writeLog(this.getCapabilityOptions(CAPABILITY_VOLUME_SET));
 
 		this.registerCapabilityListener(CAPABILITY_ONOFF, this.onCapabilityOnoff.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_SET, this.onCapabilityVolumeSet.bind(this))
@@ -195,7 +210,7 @@ class DenonDevice extends Homey.Device {
 	}
 
 	onCapabilityVolumeSet( value, opts, callback) {
-		this.writeLog("Setting Denon device volume to " + value);
+		this.writeLog("Setting Denon device volume to " + value + " from " + this.getCapabilityValue("volume_set"));
 																									// Again; assuming all Denon's stop at 98.0db.
 		let volumeWholeNumber = parseInt(value * 98);												// The following values can be sent safely.
 		let volumeRemainder = (parseInt(value * 980) - (volumeWholeNumber*10)) > 0 ? 5 : 0;			// 050 == 5db
@@ -373,7 +388,7 @@ class DenonDevice extends Homey.Device {
 				if(mode == WRITE_CLOSE_MODE) {
 					this.writeLog(commandLogInfo +  " < Sending write-close command.", LOG_LEVEL_DEBUG);
 					let client = this.socket.connect(cd, () => {
-						client.write(StringToBytes(command), () => {
+						client.write(this.StringToBytes(command), () => {
 							client.end();
 
 							if(callback != null && callback != undefined)
@@ -399,7 +414,7 @@ class DenonDevice extends Homey.Device {
 					this.writeLog(commandLogInfo +  " < Sending read command.", LOG_LEVEL_DEBUG);
 
 					let client = this.socket.connect(cd, () => {
-						client.write(StringToBytes(command));
+						client.write(this.StringToBytes(command));
 					});
 
 					client.on('data', (data)=> {
@@ -497,189 +512,5 @@ class DenonDevice extends Homey.Device {
 			return settings[settingID];
 	}
 }
-
-/////////////////          Helpers	            //////////////////
-function StringToBytes(str) {
-    var array = Buffer.alloc(str.length + 1);
-
-    for(var i = 0; i < str.length; i++) {
-        array[i] = str.charCodeAt(i);
-    }
-
-    array[str.length] = 13; // CR
-
-    return array;
-}
-
-/////////////////          Flow cards            //////////////////
-let powerOnAction = new Homey.FlowCardAction('com.moz.denon.actions.poweron');
-powerOnAction.register().registerRunListener((args, state) => {
-	return args.device.onCapabilityOnoff(true, null, null);
-});
-
-let powerOffAction = new Homey.FlowCardAction('com.moz.denon.actions.poweroff');
-powerOffAction.register().registerRunListener((args, state) => {
-	return args.device.onCapabilityOnoff(false, null, null);
-});
-
-let powerToggleAction = new Homey.FlowCardAction('com.moz.denon.actions.powertoggle');
-powerToggleAction.register().registerRunListener((args, state) => {
-	let promise = new Promise(
-		function (resolve, reject) {
-			args.device.getPowerState((err, result) => {
-				if(err == null)
-					resolve(result);
-				else
-					reject(err);
-			});
-		}
-	).then(function(result) {
-		return args.device.onCapabilityOnoff(!result);
-	});
-
-	return promise;
-});
-
-let muteAction = new Homey.FlowCardAction('com.moz.denon.actions.mute');
-muteAction.register().registerRunListener((args, state) => {
-	return args.device.writeCloseRequestPromise('MUON');
-});
-
-let unmuteAction = new Homey.FlowCardAction('com.moz.denon.actions.unmute');
-unmuteAction.register().registerRunListener((args, state) => {
-	return args.device.writeCloseRequestPromise('MUOFF');
-});
-
-let toggleMuteAction = new Homey.FlowCardAction('com.moz.denon.actions.mutetoggle');
-toggleMuteAction.register().registerRunListener((args, state) => {
-	let promise = new Promise(
-		function (resolve, reject) {
-			args.device.readRequest('MU?', (err, result, socket) => {
-				if(err == null) {
-					var mute = ((result == 'MUON') ? 'MUOFF' : 'MUON');
-					
-					socket.write(StringToBytes(mute), () => {
-						socket.end();
-						resolve(true);
-					});
-				} else {
-					if(socket != null)
-						socket.end();
-					reject(err);
-				}
-			});
-		}
-	);
-	return promise;
-});
-
-let sourceAction = new Homey.FlowCardAction('com.moz.denon.actions.source');
-sourceAction.register().registerRunListener((args, state) => {
-	return args.device.writeCloseRequestPromise('SI' + args.channel);
-});
-
-let volumeAction = new Homey.FlowCardAction('com.moz.denon.actions.volume');
-volumeAction.register().registerRunListener((args, state) => {
-	let promise = new Promise(
-		function (resolve, reject) {
-			args.device.readRequest('MV?', (err, result, socket) => {
-				// Attempt to recover from a dual line
-				// NOTE: Requires more testing. There are two points where this happens; see flow card also.
-				if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
-					result = result.split("\r")[0];
-					args.device.log("volumeAction received a dual line response. Splitting up the message...");
-				}
-
-				if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
-					return;
-
-				if(err == null) {
-					var volumeAsString = result.substring(2);
-					var volume = parseInt(volumeAsString);
-		
-					if(volumeAsString.length == 2)          // We always want to  work in .5db mode.
-						volume *= 10;
-		
-					var add = parseFloat(args.db) * 10;
-					
-					var newVolume = (volume+add);
-					if(newVolume < 0) newVolume = 0;
-		
-					var paddedResult = newVolume.toString();
-					while(paddedResult.length < 3)         // Again always in .5db mode. AVR doesn't care if the last ch is 0.
-						paddedResult = '0' + paddedResult;
-		
-					args.device.log("Adjusting volume from " + volumeAsString + " with length of " + volumeAsString.length + " parsed as (" + volume + ") to (" + newVolume + ") sent as (" + paddedResult + ")");
-		
-					socket.write(StringToBytes('MV'+paddedResult), () => {
-						socket.end();
-						resolve(true);
-					});            
-				} else {
-					if(socket != null)
-						socket.end();
-					
-					reject(err);
-				}
-			});
-		}
-	);
-	return promise;
-});
-
-let volumeSetAction = new Homey.FlowCardAction('com.moz.denon.actions.volumeset');
-volumeSetAction.register().registerRunListener((args, state) => {
-	var volume = parseFloat(args.db) * 10;
-	return args.device.writeCloseRequestPromise('MV' + volume);
-});
-
-let customCommandAction = new Homey.FlowCardAction('com.moz.denon.actions.customcommand');
-customCommandAction.register().registerRunListener((args, state) => {
-	args.device.log("Sending custom command: " + args.command);
-	return args.device.writeCloseRequestPromise(args.command);
-});
-
-let powerCondition = new Homey.FlowCardCondition('com.moz.denon.conditions.power');
-powerCondition.register().registerRunListener(( args, state ) => {
-	let promise = new Promise(
-		function (resolve, reject) {
-			args.device.getPowerState((err, result) => {
-				args.device.log("Power state: " + err + ", " + result);
-
-				if(err == null)
-					resolve(result);
-				else
-					reject(err);
-			});
-		}
-	);
-
-	return promise;
-});
-
-let channelCondition = new Homey.FlowCardCondition('com.moz.denon.conditions.channel');
-channelCondition.register().registerRunListener(( args, state ) => {
-	let promise = new Promise(
-		function (resolve, reject) {
-			args.device.readRequest('SI?', (err, result, socket) => {
-				if(err == null && result.substring(0, 2) != 'SI')  // We ignore any SV, video mode data that comes after the original reply.
-					return;
-
-				if(err == null) {
-					socket.end();
-		
-					args.device.log("Current Source is: " + result);
-					resolve(result == 'SI' + args.channel);
-				} else {
-					if(socket != null)
-						socket.end();
-					reject(err);
-				}
-			});
-		}
-	);
-
-	return promise;
-});
 
 module.exports = DenonDevice;

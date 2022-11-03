@@ -1,6 +1,6 @@
 {
     "id": "com.moz.denon",
-    "sdk": 2,
+    "sdk": 3,
     "brandColor": "#151d24",
     "name": {
         "en": "Denon AVR"
@@ -9,8 +9,8 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.1.6",
-    "compatibility": ">=1.5.0",
+    "version": "1.2.0",
+    "compatibility": ">=5.0.0",
     "author": {
         "name": "Ralph Schaafsma",
         "email": "ralph.schaafsma@gmail.com"
@@ -29,7 +29,7 @@
       "small": "./assets/images/small.png"
     },
     "dependencies": {
-    		"net": "*"
+    	"net": "*"
     },
     "drivers": [
         {
