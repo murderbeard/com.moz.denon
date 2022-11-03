@@ -61,7 +61,7 @@ Most important features are implemented but there are some things that would be 
 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
 
-## Version 1.1.6
+## Version 1.2.0
 * Upgrade to Homey SDK3.
 
 ## Version 1.1.6
