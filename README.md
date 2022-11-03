@@ -27,6 +27,8 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-X1000
 * AVR-X1200W
 * AVR-X1300W
+* AVR-X1600 DAB (custom commands required)
+* AVR-X1700H
 * AVR-X2200W
 * AVR-X2300W
 * AVR-X2600H DAB
@@ -34,18 +36,18 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-X3100W
 * AVR-X3200W
 * AVR-X3500H
-* AVR-3808A
+* AVR-X4000
 * AVR-X4100W
 * AVR-X4200W
-* AVR-X4000
+* AVR-X4300H
+* AVC-X4700H
 * AVR-X5200
 * AVR-X6200
+* AVR-3313
+* AVR-3808A
 * AVR-S960H
 * CEOL RCD-N8
-* AVC-X4700H
 * DRA-800H
-* AVR-X1700H
-* AVR-X1600 DAB (custom commands required)
 
 Please let me know if your Denon model is supported.
 
@@ -58,6 +60,9 @@ Most important features are implemented but there are some things that would be 
 
 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
+
+## Version 1.1.6
+* Upgrade to Homey SDK3.
 
 ## Version 1.1.6
 * Deleted devices are handled correctly. All running tasks are killed and callbacks cleared. Before deleted devices would linger due to status and command timeouts.
