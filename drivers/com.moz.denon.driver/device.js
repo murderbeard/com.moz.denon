@@ -82,8 +82,6 @@ class DenonDevice extends Homey.Device {
 			this.addCapability(CAPABILITY_VOLUME_MUTE);
 		}
 
-		this.writeLog(this.getCapabilityOptions(CAPABILITY_VOLUME_SET));
-
 		this.registerCapabilityListener(CAPABILITY_ONOFF, this.onCapabilityOnoff.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_SET, this.onCapabilityVolumeSet.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_UP, this.onCapabilityVolumeUp.bind(this))
@@ -210,7 +208,7 @@ class DenonDevice extends Homey.Device {
 	}
 
 	onCapabilityVolumeSet( value, opts, callback) {
-		this.writeLog("Setting Denon device volume to " + value + " from " + this.getCapabilityValue("volume_set"));
+		this.writeLog("Setting Denon device volume to " + value);
 																									// Again; assuming all Denon's stop at 98.0db.
 		let volumeWholeNumber = parseInt(value * 98);												// The following values can be sent safely.
 		let volumeRemainder = (parseInt(value * 980) - (volumeWholeNumber*10)) > 0 ? 5 : 0;			// 050 == 5db

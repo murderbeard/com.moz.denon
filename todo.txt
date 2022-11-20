@@ -10,3 +10,5 @@
 future
 - investigate zone 2 gui buttons: https://github.com/murderbeard/com.moz.denon/issues/5
 - increase default input source list? Custom input source list?
+
+- From github: add is_available_on_network or disappeared from network.

@@ -40,6 +40,7 @@ Most Denon models that are network control enabled through Telnet should work.
 * AVR-X4100W
 * AVR-X4200W
 * AVR-X4300H
+* AVR-X4500H
 * AVC-X4700H
 * AVR-X5200
 * AVR-X6200
@@ -60,6 +61,9 @@ Most important features are implemented but there are some things that would be 
 
 
 For changelogs please visit: https://github.com/murderbeard/com.moz.denon
+
+## Version 1.2.1
+* Fixed an issue where adding a new device would fail.
 
 ## Version 1.2.0
 * Upgrade to Homey SDK3.

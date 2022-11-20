@@ -163,18 +163,18 @@ class DenonDriver extends Homey.Driver {
         });
     }
 
-    onPairListDevices( data, callback ){
+    async onPairListDevices( data ){
 		this.log("Device Pairing method called.");
         this.log(data);
 
-        callback( null, [
+        return [
             {
 				name: "New Denon Amplifier",
                 data: {
 					id: data.id
                 }
             }
-        ]);
+        ];
     }
 }
 
