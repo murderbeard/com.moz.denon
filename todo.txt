@@ -1,14 +1,25 @@
-- Remove confirmed from issues on github.
-- Update network control text to include something about power saving: https://github.com/murderbeard/com.moz.denon/issues/6
-- Update duplicate readme texts in on the store.
+Easy to implement:
+- Add text about power saving to readme (https://github.com/murderbeard/com.moz.denon/issues/6)
+- Make sure conditions.channel always succeeds. What about the second/third zone replies?
 
-- Investigate removal of device for updateDeviceStatus() and other loops that might get stuck running on a garbage removed device.
-- Sort the device list nicely.
+Unknown need more info:
+- X2400H doesn't work maybe? (https://github.com/murderbeard/com.moz.denon/issues/3)
+- Losing connection and false power status (https://github.com/murderbeard/com.moz.denon/issues/10)
+- As source is grabbed during regular updates - does the channel condition card NEED to send it's own SI??
+- Should source be considered a capability so we can set it through the mobile/web interface?
+
+Harder:
+- Zone 2 control via device control (https://github.com/murderbeard/com.moz.denon/issues/5)
+- Connection info - tell when device is offline (https://github.com/murderbeard/com.moz.denon/issues/11) From github: add is_available_on_network or disappeared from network.
+
+Investigate Future:
 - Investigate if Zone2 as a separate device makes things easier. Or just see if Zone2 is doable.
-- Investigate Source as part of the status update - adding a source changed event card.
-
-future
 - investigate zone 2 gui buttons: https://github.com/murderbeard/com.moz.denon/issues/5
 - increase default input source list? Custom input source list?
 
-- From github: add is_available_on_network or disappeared from network.
+
+Done:
+- (Fixed as of SDK3?) Investigate removal of device for updateDeviceStatus() and other loops that might get stuck running on a garbage removed device.
+- (DONE) Sort the device list nicely.
+- Investigate Source as part of the status update - adding a source changed event card.
+- Add CD to source list - was missing from the beginning. (https://github.com/murderbeard/com.moz.denon/issues/2)

@@ -6,13 +6,14 @@ const Homey = require('homey');
 const WRITE_CLOSE_MODE = 0;             // We write a command and immediately close the socket afterwards.
 const READ_MODE = 1;                    // We write a command and return the result, we keep the connection open. Must be closed manually.
 const TELNET_PORT = 23;
-const TELNET_RECONNECT_TIME_OUT = 100;  // Time before we consider a socket truly closed. Denon AVR doesn't accept a new connection while the old is open for some time.
+const TELNET_RECONNECT_TIME_OUT = 200;  // Time before we consider a socket truly closed. Denon AVR doesn't accept a new connection while the old is open for some time.
 const LOOP_DELAY = 50;                  // The time in between command buffer handling.
 const LOOP_DELAY_LIMP_MODE = 200;		// When receiving warnings we switch to this delay time.
-const SOCKET_TIMEOUT = 1000;			// Time after which we consider the socket unconnectable.
+const SOCKET_CONNECT_TIMEOUT = 1000;			// Time after which we consider the socket unconnectable.
+const READ_REQUEST_PROCESS_DELAY = 100;	// Delay before we send the data we received to the callback. This allows secondary messages to come through reliably.
 
-const STATUS_COMMAND_COUNT = 3;			// Number of commands before a complete update has been received.
-const STATUS_MAX_RETRY_COUNT = 5;		// Times before we consider a denon device unreachable and we stop trying to update.
+const STATUS_COMMAND_COUNT = 4;			// Number of commands before a complete update has been received.
+const STATUS_MAX_RETRY_COUNT = 9;		// Times before we consider a denon device unreachable and we stop trying to update. (Two whole 4 msg status updates + 1).
 const STATUS_DELAY = 2000;				// Update time between polls	
 const STATUS_DELAY_UNREACHABLE = 60000;	// Update time after too many failed attempts.			
 
@@ -61,6 +62,17 @@ class DenonDevice extends Homey.Device {
 		return array;
 	}
 
+	findMessage(messages, filter) {
+		var messageArray = messages.split('\r');
+
+		for (let i = 0; i < messageArray.length; i++) {
+			if(messageArray[i].startsWith(filter))
+				return messageArray[i];
+		}
+
+		return "";
+	}
+
     onInit() {
 		if(!this.hasCapability(CAPABILITY_ONOFF)) {
 			this.addCapability(CAPABILITY_ONOFF);
@@ -88,13 +100,14 @@ class DenonDevice extends Homey.Device {
 		this.registerCapabilityListener(CAPABILITY_VOLUME_DOWN, this.onCapabilityVolumeDown.bind(this))
 		this.registerCapabilityListener(CAPABILITY_VOLUME_MUTE, this.onCapabilityVolumeMute.bind(this))
 		
-		this.ip = this.getSetting(SETTING_KEY_IP, DEFAULT_IP);
-		this.powerCommand = this.getSetting(SETTING_KEY_POWER_COMMAND, "PW");
+		this.ip = this.getStoredSetting(SETTING_KEY_IP, DEFAULT_IP);
+		this.powerCommand = this.getStoredSetting(SETTING_KEY_POWER_COMMAND, "PW");
 		this.offCommand = this.powerCommand == "PW" ? "STANDBY" : "OFF";
 
 		this.statusRetryCount = STATUS_MAX_RETRY_COUNT;
-		this.statusCommandsRemain = 0;	// Each status update requires three separate requests for: power, muted and volume.
+		this.statusCommandsRemain = 0;	// Each status update requires four separate requests for: power, muted, volume and now also source.
 		this.statusCommandsFailed = 0;
+		this.channel = "";
 
 		this.looping = true;			// Is the device actively working through commands?
 		this.commandList = new Array();	// Backlog of commands to process.
@@ -103,6 +116,8 @@ class DenonDevice extends Homey.Device {
 
 		this.statusTimeout = null;		// Timeout awaiting the next status update.
 		this.commandTimeout = null;		// Timeout awaiting the next command loop. (might make looping:boolean redundant).
+		this.readRequestProcessTimeout = null;	// Timeout until we present the received messages to the callback.
+		this.connectTimeout = null;
 
 		this.writeLog("Denon device initialized with IP: " + this.ip);
 
@@ -158,6 +173,38 @@ class DenonDevice extends Homey.Device {
 			if(this.statusCommandsRemain == 0)
 				this.statusTimeout = setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
 		});
+		this.readRequest("SI?", (err, result, socket)=> {
+			if(socket != null)	// If you can, close it. Also in case of an error.
+				socket.end();
+			
+			if(err != null)
+				this.statusCommandsFailed++;
+			else {
+				var source = this.findMessage(result, "SI");
+
+				if(source != "") {	// We actually got a valid message back.
+					if(this.channel != "" && this.channel != source) {
+						this.channel = source;
+						this.writeLog("Changed channel to: " + source);
+
+						let channelNameForFlow = source.substring(2);	// We don't show the user the SI prefix.
+
+						this.homey.flow.getDeviceTriggerCard('com.moz.denon.triggers.channelchanged')
+							.trigger(this, {"channel": channelNameForFlow});
+
+						this.homey.flow.getDeviceTriggerCard('com.moz.denon.triggers.channelchangedto')
+							.trigger(this, null, {"channel": channelNameForFlow});
+					}
+					
+					this.channel = source;
+				}
+			}
+
+			this.statusCommandsRemain--;
+
+			if(this.statusCommandsRemain == 0)
+				this.statusTimeout = setTimeout(this.updateDeviceStatus.bind(this), this.statusRetryCount > 0 ? STATUS_DELAY : STATUS_DELAY_UNREACHABLE);
+		});
 	}
 
     onAdded() {
@@ -172,16 +219,19 @@ class DenonDevice extends Homey.Device {
 		}
 
 		this.commandList.length = 0;				// Clear any backlogged commands.
-		clearTimeout(this.statusTimeout);			// Stop the status update loop.
-		clearTimeout(this.commandTimeout);			// Stop command loop.
+
+		// Clear all timeouts if they exist.
+		if(this.statusTimeout != null) clearTimeout(this.statusTimeout);			// Stop the status update loop.
+		if(this.commandTimeout != null) clearTimeout(this.commandTimeout);			// Stop command loop.
+		if(this.readRequestProcessTimeout != null) clearTimeout(this.readRequestProcessTimeout);
+		if(this.connectTimeout != null) clearTimeout(this.connectTimeout);
     }
 	
-	onSettings( oldSettingsObj, newSettingsObj, changedKeysArr, callback ) {
+	async onSettings({ oldSettings, newSettings, changedKeys }) {
 		this.writeLog("Settings updated.");
-		callback( null, true );
 
-		this.ip = this.getSetting(SETTING_KEY_IP, DEFAULT_IP);
-		this.powerCommand = this.getSetting(SETTING_KEY_POWER_COMMAND, "PW");
+		this.ip = this.getSetting(newSettings, SETTING_KEY_IP, DEFAULT_IP);
+		this.powerCommand = this.getSetting(newSettings, SETTING_KEY_POWER_COMMAND, "PW");
 		this.offCommand = this.powerCommand == "PW" ? "STANDBY" : "OFF";
 	}
 
@@ -209,6 +259,7 @@ class DenonDevice extends Homey.Device {
 
 	onCapabilityVolumeSet( value, opts, callback) {
 		this.writeLog("Setting Denon device volume to " + value);
+		value = value > 1 ? 1 : value < 0 ? 0 : value;
 																									// Again; assuming all Denon's stop at 98.0db.
 		let volumeWholeNumber = parseInt(value * 98);												// The following values can be sent safely.
 		let volumeRemainder = (parseInt(value * 980) - (volumeWholeNumber*10)) > 0 ? 5 : 0;			// 050 == 5db
@@ -240,25 +291,9 @@ class DenonDevice extends Homey.Device {
 
 	onCapabilityVolumeMute( value, opts, callback) {
 		this.writeLog("Setting Denon Device Mute: " + value);
-		let device = this;
 
-		let promise = new Promise(
-			function (resolve, reject) {
-				var isMuted = device.getCapabilityValue(CAPABILITY_VOLUME_MUTE);
-				var muteCmd = isMuted ? CMD_VOLUME_MUTE + "OFF" : CMD_VOLUME_MUTE + "ON";
-
-				device.writeCloseRequest(muteCmd, (err, result, socket) => {
-					if(err == null) {
-						//device.getIsMuted();	// NOTE: We do not have to request an update from the amplifier here as any corrections will be sent during updateDeviceStatus().
-						resolve(value);
-					} else {
-						reject(err);
-					}
-				});
-			}
-		);
-
-		return promise;
+		return this.writeCloseRequestPromise(value ? CMD_VOLUME_MUTE + "ON" : CMD_VOLUME_MUTE + "OFF");
+		// NOTE: We do not have to request an update from the amplifier here as any corrections will be sent during updateDeviceStatus().
 	}
 
 	// callback(err, result)
@@ -268,15 +303,23 @@ class DenonDevice extends Homey.Device {
 		let offCommand =    this.offCommand;
 	
 		this.readRequest(powerCommand + '?', (err, result, socket) => {
-			if(err == null && result.substring(0, 2) != powerCommand) {  // We don't handle Zone 2.
-				this.writeLog("Ignoring other zone power states. result = (" + result + ")");
-				return;
-			}
+			//if(err == null && result.substring(0, 2) != powerCommand) {  // We don't handle Zone 2.
+			//	this.writeLog("Ignoring other zone power states. result = (" + result + ")");
+			//	return;
+			//}
 
 			if(err == null) {
 				socket.end();
-				//var oldDeviceState = this.getCapabilityValue(CAPABILITY_ONOFF);
-				this.setCapabilityValue(CAPABILITY_ONOFF, !(result == powerCommand + offCommand));
+				
+				var powerState = this.findMessage(result, powerCommand);
+
+				if(powerState == "") {
+					// No power message was found.
+				} else if(powerState == powerCommand + offCommand) {
+					this.setCapabilityValue(CAPABILITY_ONOFF, false);					
+				} else if(powerState == powerCommand + 'ON') {
+					this.setCapabilityValue(CAPABILITY_ONOFF, true);
+				}
 			} else {
 				if(socket != null)
 					socket.end();
@@ -293,6 +336,8 @@ class DenonDevice extends Homey.Device {
 		this.readRequest(CMD_VOLUME_MUTE + '?', (err, result, socket) => {
 			if(err == null) {
 				socket.end();
+
+				result = this.findMessage(result, CMD_VOLUME_MUTE);
 
 				var isMuted = result.includes('ON');
 				var isNotMuted = result.includes('OFF');
@@ -323,28 +368,32 @@ class DenonDevice extends Homey.Device {
 
 			// Attempt to recover from a dual line
 			// NOTE: Requires more testing. There are two points where this happens; see flow card also.
-			if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
-				result = result.split("\r")[0];
-				this.writeLog("getVolume received a dual line response. Splitting up the message...")
-			}
+			//if(err == null && (result.substring(0, 2) == 'MV' && result.includes('MAX') && result.includes("\r"))) {
+			//	result = result.split("\r")[0];
+			//	this.writeLog("getVolume received a dual line response. Splitting up the message...")
+			//}
 
-			if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
-				return;
+			//if(err == null && (result.substring(0, 2) != 'MV' || result.includes('MAX')))  // We don't handle Zone 2 and ignore MAX reached response.
+			//	return;
 
 			if(err == null) {
 				socket.end();
 
-				var volumeAsString = result.substring(2);
-				var volume = parseFloat(volumeAsString);
+				result = this.findMessage(result, CMD_VOLUME_MASTER); //result.split('\r')[0];
 
-				if(volumeAsString.length == 2)	// Two digits is a whole number, three digits means .5.
-					volume *= 10;
+				if(!result.startsWith("MVMAX") && result != "") {
+					var volumeAsString = result.substring(2);
+					var volume = parseFloat(volumeAsString);
 
-				//this.writeLog("Volume string is: " + volumeAsString + ", " + volume);
-				var normalizedVolume = volume / 980;
-				normalizedVolume = normalizedVolume < 0 ? 0 : normalizedVolume > 1 ? 1 : normalizedVolume;	// Be sure to cap it 0-1.
+					if(volumeAsString.length == 2)	// Two digits is a whole number, three digits means .5.
+						volume *= 10;
 
-				this.setCapabilityValue(CAPABILITY_VOLUME_SET, normalizedVolume);		// Assumes all denon devices stop at 98db.
+					//this.writeLog("Volume string is: " + volumeAsString + ", " + volume);
+					var normalizedVolume = volume / 980;
+					normalizedVolume = normalizedVolume < 0 ? 0 : normalizedVolume > 1 ? 1 : normalizedVolume;	// Be sure to cap it 0-1.
+
+					this.setCapabilityValue(CAPABILITY_VOLUME_SET, normalizedVolume);		// Assumes all denon devices stop at 98db.
+				}
 			} else {
 				if(socket != null)
 					socket.end();
@@ -375,17 +424,29 @@ class DenonDevice extends Homey.Device {
 					host: this.ip
 				};
 
-				this.socket.setTimeout(SOCKET_TIMEOUT, ()=>{
+				// INACTIVITY TIMEOUT, so not just for connecting.
+				/*this.socket.setTimeout(SOCKET_TIMEOUT, ()=>{
 					this.writeLog(commandLogInfo +  " < Failed to connect. Socket timed out.");
 					this.socket.destroy();
 
 					if(callback != null && callback != undefined)
 						callback(new Error("Failed to connect to receiver. Socket timed out.\n\nIs your IP correct and is Network Control enabled on the receiver?"), false, null);						
-				});
+				});*/
+				
+				// Connect failed timeout. TEST MORE !!!!!!!!!!!!!!!!!!!
+				this.connectTimeout = setTimeout(()=> {
+					this.writeLog(commandLogInfo +  " < Failed to connect. Socket timed out.");
+					if(this.socket != null)
+						this.socket.destroy();
+
+					if(callback != null && callback != undefined)
+						callback(new Error("Failed to connect to receiver. Socket timed out.\n\nIs your IP correct and is Network Control enabled on the receiver?"), false, null);						
+				}, SOCKET_CONNECT_TIMEOUT);
 
 				if(mode == WRITE_CLOSE_MODE) {
 					this.writeLog(commandLogInfo +  " < Sending write-close command.", LOG_LEVEL_DEBUG);
 					let client = this.socket.connect(cd, () => {
+						clearTimeout(this.connectTimeout);
 						client.write(this.StringToBytes(command), () => {
 							client.end();
 
@@ -412,8 +473,11 @@ class DenonDevice extends Homey.Device {
 					this.writeLog(commandLogInfo +  " < Sending read command.", LOG_LEVEL_DEBUG);
 
 					let client = this.socket.connect(cd, () => {
+						clearTimeout(this.connectTimeout);
 						client.write(this.StringToBytes(command));
 					});
+
+					let msgData = "";
 
 					client.on('data', (data)=> {
 						var status = data.toString();
@@ -428,9 +492,16 @@ class DenonDevice extends Homey.Device {
 							// TODO: The socket is not automatically closed on this error.
 						}
 
-						this.writeLog(commandLogInfo +  " < Returned result: " + status, LOG_LEVEL_DEBUG);
 
-						callback(err, status, client);
+						msgData = msgData + data.toString();
+						if(this.readRequestProcessTimeout != null) {
+							clearTimeout(this.readRequestProcessTimeout);
+						}
+
+						this.readRequestProcessTimeout = setTimeout(() => {
+							this.writeLog(commandLogInfo +  " < Returned result: " + msgData.replace('\r', '\\r'), LOG_LEVEL_DEBUG);
+							callback(err, msgData, client);
+						}, READ_REQUEST_PROCESS_DELAY);
 					});
 
 					client.on('close', ()=> {
@@ -479,6 +550,7 @@ class DenonDevice extends Homey.Device {
 	}
 
 	// Simple promise wrapper for handling write and forget commands.
+	// NOTE: It only resolves to TRUE, which is the result when it's a write-close, and rejects to err.
 	writeCloseRequestPromise(command) {
 		let device = this;
 
@@ -501,9 +573,12 @@ class DenonDevice extends Homey.Device {
 		this.aSyncRequest(READ_MODE, command, callback);
 	}
 
-	getSetting(settingID, defaultValue) {
+	getStoredSetting(settingID, defaultValue) {
 		let settings = this.getSettings();
+		return this.getSetting(settings, settingID, defaultValue);	
+	}
 
+	getSetting(settings, settingID, defaultValue) {
 		if( settings == undefined || settings[settingID] == undefined)
 			return defaultValue;
 		else

@@ -11,6 +11,11 @@ Action Flow Cards:
 * Set input source from a dropdown list.
 * Send customized commands. Add functionality that the app does not support by default: missing input sources for your specific device or setting surround mode for example.
 
+Trigger Flow Card:
+* Turned on/off
+* Volume changed
+* Source changed
+
 Condition Flow Cards:
 * Is the Denon AVR powered on?
 * Is the Denon AVR set to a selected input source?
@@ -32,6 +37,7 @@ Confirmed
 * AVR-X2200W
 * AVR-X2300W
 * AVR-X2600H DAB
+* AVR-X2700H
 * AVR-X3000
 * AVR-X3100W
 * AVR-X3200W
@@ -53,11 +59,9 @@ Confirmed
 Please let me know if your Denon model is supported.
 
 
-Future Things
-Most important features are implemented but there are some things that would be nice to have. If there is some demand for it these might be implemented until then the base functionality remains as is.
-* Zone2 control; channel select and volume.
-* More trigger cards. (on/off trigger card is available)
-* More mobile controls; channel select.
+Currently unsupported
+* Zone2 and Zone3 control are currently only possible by using custom commands.
+* This app uses telnet to communicate with the receiver on port 80, not the web interface via port 8080. 
+* The sources list is not user adjustable and is made up of a generic set of sources plus some model specific ones.
 
-
-For changelogs please visit: https://github.com/murderbeard/com.moz.denon
+For changelogs, issues or suggestions please visit: https://github.com/murderbeard/com.moz.denon

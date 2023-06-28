@@ -42,7 +42,7 @@ class DenonDriver extends Homey.Driver {
                 function (resolve, reject) {
                     args.device.readRequest('MU?', (err, result, socket) => {
                         if(err == null) {
-                            var mute = ((result == 'MUON') ? 'MUOFF' : 'MUON');
+                            var mute = args.device.findMessage(result, 'MU') == 'MUON' ? 'MUOFF' : 'MUON';
                             
                             socket.write(args.device.StringToBytes(mute), () => {
                                 socket.end();
@@ -63,6 +63,7 @@ class DenonDriver extends Homey.Driver {
             return args.device.writeCloseRequestPromise('SI' + args.channel);
         });
 
+        // NOTE-2023-06-10: This still works properly with the new multiline collection system.
         this.homey.flow.getActionCard('com.moz.denon.actions.volume').registerRunListener((args, state) => {
             let promise = new Promise(
                 function (resolve, reject) {
@@ -142,20 +143,32 @@ class DenonDriver extends Homey.Driver {
             let promise = new Promise(
                 function (resolve, reject) {
                     args.device.readRequest('SI?', (err, result, socket) => {
-                        if(err == null && result.substring(0, 2) != 'SI')  // We ignore any SV, video mode data that comes after the original reply.
-                            return;
-        
                         if(err == null) {
                             socket.end();
-                
-                            args.device.log("Current Source is: " + result);
-                            resolve(result == 'SI' + args.channel);
+
+                            let foundMessage = args.device.findMessage(result, 'SI');
+
+                            if(foundMessage == "")
+                                reject("No source info received from Denon receiver.");
+                                                        
+                            args.device.log("Current Source is: " + foundMessage);
+                            resolve(foundMessage == 'SI' + args.channel);
                         } else {
                             if(socket != null)
                                 socket.end();
                             reject(err);
                         }
                     });
+                }
+            );
+        
+            return promise;
+        });
+
+        this.homey.flow.getDeviceTriggerCard('com.moz.denon.triggers.channelchangedto').registerRunListener(( args, state ) => {
+            let promise = new Promise(
+                function (resolve, reject) {
+                    resolve(args.channel == state.channel);
                 }
             );
         

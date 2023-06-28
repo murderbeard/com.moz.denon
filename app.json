@@ -9,7 +9,7 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.2.1",
+    "version": "1.3.4",
     "compatibility": ">=5.0.0",
     "author": {
         "name": "Ralph Schaafsma",
@@ -24,6 +24,10 @@
         ]
     },
     "source": "https://github.com/murderbeard/com.moz.denon",
+    "bugs": {
+        "url": "https://github.com/murderbeard/com.moz.denon/issues"
+    },
+    "support": "mailto:denon.support@ralphschaafsma.com",
     "images": {
       "large": "./assets/images/large.png",
       "small": "./assets/images/small.png"
@@ -44,13 +48,6 @@
             },
             "class": "other",
             "capabilities": [ "onoff", "volume_set", "volume_up", "volume_down", "volume_mute" ],
-            "capabilitiesOptions": {
-                "volume_set": {
-                    "min": 0,
-                    "max": 1,
-                    "decimals": 2
-                }
-            },
             "pair": [
                 {
                     "id": "start"
@@ -115,8 +112,8 @@
         "actions": [{
             "id": "com.moz.denon.actions.poweron",
             "title": {
-                "en": "Turn power on",
-                "nl": "Zet aan"
+                "en": "Turn power on (obsolete card)",
+                "nl": "Zet aan (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -130,8 +127,8 @@
         }, {
             "id": "com.moz.denon.actions.poweroff",
             "title": {
-                "en": "Power off/standby",
-                "nl": "Uitschakelen/standby"
+                "en": "Power off/standby (obsolete card)",
+                "nl": "Uitschakelen/standby (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -145,8 +142,8 @@
         }, {
             "id": "com.moz.denon.actions.powertoggle",
             "title": {
-                "en": "Toggle Power",
-                "nl": "Aan/Uit"
+                "en": "Toggle Power (obsolete card)",
+                "nl": "Aan/Uit (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -160,8 +157,8 @@
         }, {
             "id": "com.moz.denon.actions.mutetoggle",
             "title": {
-                "en": "Mute/Unmute",
-                "nl": "Mute/Unmute"
+                "en": "Mute/Unmute (obsolete card)",
+                "nl": "Mute/Unmute (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -175,8 +172,8 @@
         }, {
             "id": "com.moz.denon.actions.mute",
             "title": {
-                "en": "Mute",
-                "nl": "Mute"
+                "en": "Mute (obsolete card)",
+                "nl": "Mute (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -190,8 +187,8 @@
         }, {
             "id": "com.moz.denon.actions.unmute",
             "title": {
-                "en": "Unmute",
-                "nl": "Unmute"
+                "en": "Unmute (obsolete card)",
+                "nl": "Unmute (verouderde kaart)"
             },
             "args": [{
                 "name": "device",
@@ -205,12 +202,12 @@
         }, {
             "id": "com.moz.denon.actions.volume",
             "title": {
-                "en": "Adjust Volume",
-                "nl": "Pas Volume Aan"
+                "en": "Set relative volume",
+                "nl": "Zet relatief volume"
             },
             "titleFormatted": {
-                "en": "Adjust Volume: [[db]]",
-                "nl": "Pas Volume Aan: [[db]]"
+                "en": "Set relative volume [[db]]dB",
+                "nl": "Zet relatief volume [[db]]dB"
             },
             "args": [{
                 "name": "device",
@@ -226,19 +223,18 @@
                 "min": -10,
                 "max": 10,
                 "step": 0.5,
-                "label": "dB",
                 "labelMultiplier": 1.0,
                 "labelDecimals": 1
             }]
         }, {
             "id": "com.moz.denon.actions.volumeset",
             "title": {
-                "en": "Set Volume",
-                "nl": "Zet Volume"
+                "en": "Set volume to",
+                "nl": "Zet volume naar"
             },
             "titleFormatted": {
-                "en": "Set Volume: [[db]]",
-                "nl": "Zet Volume: [[db]]"
+                "en": "Set volume to [[db]]dB",
+                "nl": "Zet volume naar [[db]]dB"
             },
             "args": [{
                 "name": "device",
@@ -254,19 +250,18 @@
                 "min": 0,
                 "max": 90,
                 "step": 0.5,
-                "label": "dB",
                 "labelMultiplier": 1.0,
                 "labelDecimals": 1
             }]
         }, {
             "id": "com.moz.denon.actions.source",
             "title": {
-                "en": "Select Source",
-                "nl": "Kies Kanaal"
+                "en": "Select source",
+                "nl": "Selecteer ingangsbron"
             },
             "titleFormatted": {
-                "en": "Select Source: [[channel]]",
-                "nl": "Kies Kanaal: [[channel]]"
+                "en": "Select source: [[channel]]",
+                "nl": "Selecteer ingangsbron: [[channel]]"
             },
             "args": [{
                 "name": "device",
@@ -303,17 +298,18 @@
                             { "id": "AUXA",   "label": { "en": "Portable In (N8 Only)" } },
                             { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                             { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
-                            { "id": "AUXD",   "label": { "en": "Digital In" } }]
+                            { "id": "AUXD",   "label": { "en": "Digital In" } },
+                            { "id": "CD",   "label": { "en": "CD" } }]
             }]
         }, {
             "id": "com.moz.denon.actions.customcommand",
             "title": {
-                "en": "Send Custom Command",
-                "nl": "Verstuur Speciaal Commando"
+                "en": "Send custom command",
+                "nl": "Verstuur speciaal commando"
             },
             "titleFormatted": {
-                "en": "Send Custom Command: [[command]]",
-                "nl": "Verstuur Speciaal Commando: [[command]]"
+                "en": "Send custom command: [[command]]",
+                "nl": "Verstuur speciaal commando: [[command]]"
             },
             "args": [{
                 "name": "device",
@@ -339,7 +335,7 @@
         "conditions": [ {
             "id": "com.moz.denon.conditions.power",
             "title": {
-                "en": "Powered On (obsolete card)",
+                "en": "Powered on (obsolete card)",
                 "nl": "Staat aan (verouderde kaart)"
             },
              "args": [{
@@ -354,12 +350,12 @@
         }, {
             "id": "com.moz.denon.conditions.channel",
             "title": {
-                "en": "Selected As Source",
-                "nl": "Kanaal Is Actief"
+                "en": "Selected as source",
+                "nl": "Ingangsbron is geselecteerd"
             },
             "titleFormatted": {
-                "en": "Selected As Source: [[channel]]",
-                "nl": "Kanaal Is Actief: [[channel]]"
+                "en": "Selected as source: [[channel]]",
+                "nl": "Ingangsbron is geselecteerd: [[channel]]"
             },
              "args": [{
                 "name": "device",
@@ -396,8 +392,95 @@
                             { "id": "AUXA",   "label": { "en": "Portable In (N8 Only)" } },
                             { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                             { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
-                            { "id": "AUXD",   "label": { "en": "Digital In" } }]
+                            { "id": "AUXD",   "label": { "en": "Digital In" } },
+                            { "id": "CD",   "label": { "en": "CD" } }]
             }]
-        }]
+        }],
+        "triggers": [ {
+                "id": "com.moz.denon.triggers.channelchanged",
+                "title": {
+                    "en": "Source changed",
+                    "nl": "Ingangsbron is veranderd"
+                },
+                 "args": [{
+                    "name": "device",
+                    "type": "device",
+                    "filter": "driver_id=com.moz.denon.driver",
+                    "placeholder": {
+                        "en": "Select amplifier",
+                        "nl": "Selecteer versterker"
+                    }
+                 }],
+                 "hint": {
+                     "en": "Triggers when the device has switched source.",                     
+                     "nl": "Wordt geactiveerd wanneer het apparaat van ingangsbron (source) veranderd."
+                 },
+                 "tokens": [
+					{
+						"name": "channel",
+						"type": "string",
+						"title": {
+							"en": "Source"
+						},
+						"example": {
+							"en": "MPLAY"
+						}
+					}
+				]
+            }, {
+                "id": "com.moz.denon.triggers.channelchangedto",
+                "title": {
+                    "en": "Source changed to",
+                    "nl": "Ingangsbron is veranderd naar"
+                },
+                
+                "titleFormatted": {
+                    "en": "Source changed to: [[channel]]",
+                    "nl": "Ingangsbron is veranderd naar: [[channel]]"
+                },
+                "args": [{
+                    "name": "device",
+                    "type": "device",
+                    "filter": "driver_id=com.moz.denon.driver",
+                    "placeholder": {
+                        "en": "Select amplifier",
+                        "nl": "Selecteer versterker"
+                    }
+                 },{
+                    "name": "channel",
+                    "type": "dropdown",
+                    "values": [ { "id": "TUNER",    "label": { "en": "Tuner" } },
+                                { "id": "DVD",      "label": { "en": "DVD" } },
+                                { "id": "BD",       "label": { "en": "Blu-ray" } },
+                                { "id": "TV",       "label": { "en": "TV Audio" } },
+                                { "id": "SAT/CBL",   "label": { "en": "CBL/SAT" } },
+                                { "id": "MPLAY",   "label": { "en": "Media Player" } },
+                                { "id": "GAME",   "label": { "en": "Game" } },
+                                { "id": "AUX1",   "label": { "en": "Aux 1" } },
+                                { "id": "AUX2",   "label": { "en": "Aux 2" } },
+                                { "id": "NET",   "label": { "en": "Network" } },
+                                { "id": "PANDORA",   "label": { "en": "Pandora (US Only)" } },
+                                { "id": "SIRIUSXM",   "label": { "en": "Siriusxm (US Only)" } },
+                                { "id": "SPOTIFY",   "label": { "en": "Spotify" } },
+                                { "id": "FLICKR",   "label": { "en": "Flickr" } },
+                                { "id": "FAVORITES",   "label": { "en": "Favorites" } },
+                                { "id": "IRADIO",   "label": { "en": "Internet Radio" } },                            
+                                { "id": "SERVER",   "label": { "en": "Server" } },                            
+                                { "id": "USB/IPOD",   "label": { "en": "USB/iPod" } },                            
+                                { "id": "USB",   "label": { "en": "USB (Start Playback)" } },                            
+                                { "id": "IPD",   "label": { "en": "iPod Direct (Start Playback)" } },                            
+                                { "id": "IRP",   "label": { "en": "Internet Radio (Start Playback)" } },
+                                { "id": "AUXA",   "label": { "en": "Portable In (N8 Only)" } },
+                                { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
+                                { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
+                                { "id": "AUXD",   "label": { "en": "Digital In" } },
+                                { "id": "CD",   "label": { "en": "CD" } }]
+                }],
+                "hint": {
+                    "en": "Triggers when the device has switched to a specific source.",                     
+                    "nl": "Wordt geactiveerd wanneer het apparaat naar een specifieke ingangsbron (source) veranderd."
+                }
+            }
+        ]
     }
 }
