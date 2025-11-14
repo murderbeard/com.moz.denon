@@ -399,8 +399,8 @@
             "id": "com.moz.denon.conditions.power",
             "deprecated": true,
             "title": {
-                "en": "Powered on (obsolete card)",
-                "nl": "Staat aan (verouderde kaart)"
+                "en": "!{{Powered on|Powered off}} (obsolete card)",
+                "nl": "!{{Staat aan|Staat uit}} (verouderde kaart)"
             },
             "hint": {
                 "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
@@ -423,8 +423,8 @@
                 "nl": "Ingangsbron is geselecteerd (verouderde kaart)"
             },
             "titleFormatted": {
-                "en": "Selected as source: [[channel]] (obsolete card)",
-                "nl": "Ingangsbron is geselecteerd: [[channel]] (verouderde kaart)"
+                "en": "!{{Selected|Not selected}} as source: [[channel]] (obsolete card)",
+                "nl": "Ingangsbron is!{{| niet}} geselecteerd: [[channel]] (verouderde kaart)"
             },
             "hint": {
                 "en": "This card is obsolete and has a replacement, but it will continue to work. The new card talks to your receiver to get a model specific list of sources for you to pick from.",
@@ -477,8 +477,8 @@
                 "nl": "Ingangsbron is geselecteerd"
             },
             "titleFormatted": {
-                "en": "Selected as source: [[channel]]",
-                "nl": "Ingangsbron is geselecteerd: [[channel]]"
+                "en": "!{{Selected|Not selected}} as source: [[channel]]",
+                "nl": "Ingangsbron is!{{| niet}} geselecteerd: [[channel]]"
             },
              "args": [{
                 "name": "device",

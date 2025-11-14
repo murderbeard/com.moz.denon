@@ -55,6 +55,7 @@ Confirmed
 * AVR-3808A (power saving must be turned off)
 * AVR-S960H
 * CEOL RCD-N8
+* CEOL N9
 * DRA-800H
 
 * Marantz NR-1711
