@@ -9,7 +9,7 @@
         "en": "Control your Denon AVR with Homey."
     },
     "category": "appliances",
-    "version": "1.3.6",
+    "version": "1.4.0",
     "compatibility": ">=5.0.0",
     "author": {
         "name": "Ralph Schaafsma",
@@ -111,9 +111,14 @@
     "flow": {
         "actions": [{
             "id": "com.moz.denon.actions.poweron",
+            "deprecated": true,
             "title": {
                 "en": "Turn power on (obsolete card)",
                 "nl": "Zet aan (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -126,9 +131,14 @@
             }]
         }, {
             "id": "com.moz.denon.actions.poweroff",
+            "deprecated": true,
             "title": {
                 "en": "Power off/standby (obsolete card)",
                 "nl": "Uitschakelen/standby (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -141,9 +151,14 @@
             }]
         }, {
             "id": "com.moz.denon.actions.powertoggle",
+            "deprecated": true,
             "title": {
                 "en": "Toggle Power (obsolete card)",
                 "nl": "Aan/Uit (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -156,9 +171,14 @@
             }]
         }, {
             "id": "com.moz.denon.actions.mutetoggle",
+            "deprecated": true,
             "title": {
                 "en": "Mute/Unmute (obsolete card)",
                 "nl": "Mute/Unmute (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -171,9 +191,14 @@
             }]
         }, {
             "id": "com.moz.denon.actions.mute",
+            "deprecated": true,
             "title": {
                 "en": "Mute (obsolete card)",
                 "nl": "Mute (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -186,9 +211,14 @@
             }]
         }, {
             "id": "com.moz.denon.actions.unmute",
+            "deprecated": true,
             "title": {
                 "en": "Unmute (obsolete card)",
                 "nl": "Unmute (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
             "args": [{
                 "name": "device",
@@ -255,13 +285,18 @@
             }]
         }, {
             "id": "com.moz.denon.actions.source",
+            "deprecated": true,
             "title": {
-                "en": "Select source",
-                "nl": "Selecteer ingangsbron"
+                "en": "Select source (obsolete card)",
+                "nl": "Selecteer ingangsbron (verouderde kaart)"
             },
             "titleFormatted": {
-                "en": "Select source: [[channel]]",
-                "nl": "Selecteer ingangsbron: [[channel]]"
+                "en": "Select source: [[channel]] (obsolete card)",
+                "nl": "Selecteer ingangsbron: [[channel]] (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete has a replacement, but it will continue to work. The new card talks to your receiver to get a model specific list of sources for you to pick from.",
+                "nl": "Deze kaart is overbodig heeft een vervanger, maar blijft gewoon werken. De nieuwe kaart praat met de versterker voor een modelspecifieke lijst van bronnen waaruit je kunt kiezen."
             },
             "args": [{
                 "name": "device",
@@ -299,9 +334,37 @@
                             { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                             { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
                             { "id": "AUXD",   "label": { "en": "Digital In" } },
-                            { "id": "CD",   "label": { "en": "CD" } }]
+                            { "id": "CD",   "label": { "en": "CD" } },
+                            { "id": "PHONO",   "label": { "en": "Phono" } },
+                            { "id": "GAME1",   "label": { "en": "Game 1" } }]
             }]
-        }, {
+        },{
+            "id": "com.moz.denon.actions.source.v2",
+            "title": {
+                "en": "Select source",
+                "nl": "Selecteer ingangsbron"
+            },
+            "titleFormatted": {
+                "en": "Select source: [[channel]]",
+                "nl": "Selecteer ingangsbron: [[channel]]"
+            },
+            "hint": {
+                "en": "Select source from a list of supported sources as reported by the receiver. But also includes a common sources list.",
+                "nl": "Selecteer ingangsbron uit een lijst van ondersteunde bronnen zoals aangegeven door de versterker. Maar bevat ook een lijst van standaard bronnen."
+            },
+            "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+            }, {
+                "name": "channel",
+                "type": "autocomplete",
+                "placeholder": "..."
+        }]}, {
             "id": "com.moz.denon.actions.customcommand",
             "title": {
                 "en": "Send custom command",
@@ -310,6 +373,10 @@
             "titleFormatted": {
                 "en": "Send custom command: [[command]]",
                 "nl": "Verstuur speciaal commando: [[command]]"
+            },
+            "hint": {
+                "en": "Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>.",
+                "nl": "Speciale commando's geven de mogelijkheid om specifieke data te versturen naar uw Denon versterker. In het algemeen zijn dit korte commando's in hoofdletters zoals: MVUP, MVDOWN, SIDVD of Z2ON. U kunt de door uw versterker ondersteunde commando's opzoeken door op het web te zoeken naar '(uw_versterker_serie bijv. X1200W) denon telnet protocol'. Denon biedt PDF bestanden aan voor veel van zijn versterkers; hierin staan de commando's die ondersteund worden door de specifieke versterker. De Denon AVR app voegt automatisch de vereiste <CR> toe aan het ingevulde commando."
             },
             "args": [{
                 "name": "device",
@@ -326,17 +393,18 @@
                     "en": "(e.g. SIDVD or PWON)",
                     "nl": "(bijv. SIDVD of PWON)"
                 }
-            }],
-            "hint": {
-                "en": "Custom commands allow you to specify custom data to send to your Denon device. These are generally uppercase short words like: MVUP, MVDOWN, SIDVD or Z2ON. You can look up commands that your device supports by doing a websearch for '(your_device_series e.g. X1200W) denon telnet protocol'. Denon provides PDF files for a lot of devices. Inside you will find the commands supported by your device. Note that the Denon AVR app will automatically terminate your commands with the required <CR>.",
-                "nl": "Speciale commando's geven de mogelijkheid om specifieke data te versturen naar uw Denon versterker. In het algemeen zijn dit korte commando's in hoofdletters zoals: MVUP, MVDOWN, SIDVD of Z2ON. U kunt de door uw versterker ondersteunde commando's opzoeken door op het web te zoeken naar '(uw_versterker_serie bijv. X1200W) denon telnet protocol'. Denon biedt PDF bestanden aan voor veel van zijn versterkers; hierin staan de commando's die ondersteund worden door de specifieke versterker. De Denon AVR app voegt automatisch de vereiste <CR> toe aan het ingevulde commando."
-            }
+            }]
         }], 
         "conditions": [ {
             "id": "com.moz.denon.conditions.power",
+            "deprecated": true,
             "title": {
                 "en": "Powered on (obsolete card)",
                 "nl": "Staat aan (verouderde kaart)"
+            },
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work for now.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft voorlopig gewoon werken."
             },
              "args": [{
                 "name": "device",
@@ -349,15 +417,20 @@
              }]
         }, {
             "id": "com.moz.denon.conditions.channel",
+            "deprecated": true,
             "title": {
-                "en": "Selected as source",
-                "nl": "Ingangsbron is geselecteerd"
+                "en": "Selected as source (obsolete card)",
+                "nl": "Ingangsbron is geselecteerd (verouderde kaart)"
             },
             "titleFormatted": {
-                "en": "Selected as source: [[channel]]",
-                "nl": "Ingangsbron is geselecteerd: [[channel]]"
+                "en": "Selected as source: [[channel]] (obsolete card)",
+                "nl": "Ingangsbron is geselecteerd: [[channel]] (verouderde kaart)"
             },
-             "args": [{
+            "hint": {
+                "en": "This card is obsolete and has a replacement, but it will continue to work. The new card talks to your receiver to get a model specific list of sources for you to pick from.",
+                "nl": "Deze kaart is overbodig en heeft een vervanger, maar blijft gewoon werken. De nieuwe kaart praat met de versterker voor een modelspecifieke lijst van bronnen waaruit je kunt kiezen."
+            },
+            "args": [{
                 "name": "device",
                 "type": "device",
                 "filter": "driver_id=com.moz.denon.driver",
@@ -393,7 +466,32 @@
                             { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                             { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
                             { "id": "AUXD",   "label": { "en": "Digital In" } },
-                            { "id": "CD",   "label": { "en": "CD" } }]
+                            { "id": "CD",   "label": { "en": "CD" } },
+                            { "id": "PHONO",   "label": { "en": "Phono" } },
+                            { "id": "GAME1",   "label": { "en": "Game 1" } }]
+            }]
+        }, {
+            "id": "com.moz.denon.conditions.channel.v2",
+            "title": {
+                "en": "Selected as source",
+                "nl": "Ingangsbron is geselecteerd"
+            },
+            "titleFormatted": {
+                "en": "Selected as source: [[channel]]",
+                "nl": "Ingangsbron is geselecteerd: [[channel]]"
+            },
+             "args": [{
+                "name": "device",
+                "type": "device",
+                "filter": "driver_id=com.moz.denon.driver",
+                "placeholder": {
+                    "en": "Select amplifier",
+                    "nl": "Selecteer versterker"
+                }
+             }, {
+                "name": "channel",
+                "type": "autocomplete",
+                "placeholder": "..."
             }]
         }],
         "triggers": [ {
@@ -429,14 +527,18 @@
 				]
             }, {
                 "id": "com.moz.denon.triggers.channelchangedto",
+                "deprecated": true,
                 "title": {
-                    "en": "Source changed to",
-                    "nl": "Ingangsbron is veranderd naar"
+                    "en": "Source changed to (obsolete card)",
+                    "nl": "Ingangsbron is veranderd naar (verouderde kaart)"
                 },
-                
                 "titleFormatted": {
-                    "en": "Source changed to: [[channel]]",
-                    "nl": "Ingangsbron is veranderd naar: [[channel]]"
+                    "en": "Source changed to: [[channel]] (obsolete card)",
+                    "nl": "Ingangsbron is veranderd naar: [[channel]] (verouderde kaart)"
+                },
+                "hint": {
+                    "en": "Triggers when the device has switched to a specific source. This card is obsolete and has a replacement, but it will continue to work. The new card talks to your receiver to get a model specific list of sources for you to pick from.",                     
+                    "nl": "Wordt geactiveerd wanneer het apparaat naar een specifieke ingangsbron (source) veranderd. Deze kaart is overbodig en heeft een vervanger, maar blijft gewoon werken. De nieuwe kaart praat met de versterker voor een modelspecifieke lijst van bronnen waaruit je kunt kiezen."
                 },
                 "args": [{
                     "name": "device",
@@ -474,7 +576,33 @@
                                 { "id": "AUXB",   "label": { "en": "N5:Analog In / N8:Analog In1" } },
                                 { "id": "AUXC",   "label": { "en": "Analog In2 (N8 Only)" } },
                                 { "id": "AUXD",   "label": { "en": "Digital In" } },
-                                { "id": "CD",   "label": { "en": "CD" } }]
+                                { "id": "CD",   "label": { "en": "CD" } },
+                                { "id": "PHONO",   "label": { "en": "Phono" } },
+                                { "id": "GAME1",   "label": { "en": "Game 1" } }]
+                }]
+            }, {
+                "id": "com.moz.denon.triggers.channelchangedto.v2",
+                "title": {
+                    "en": "Source changed to",
+                    "nl": "Ingangsbron is veranderd naar"
+                },
+                
+                "titleFormatted": {
+                    "en": "Source changed to: [[channel]]",
+                    "nl": "Ingangsbron is veranderd naar: [[channel]]"
+                },
+                "args": [{
+                    "name": "device",
+                    "type": "device",
+                    "filter": "driver_id=com.moz.denon.driver",
+                    "placeholder": {
+                        "en": "Select amplifier",
+                        "nl": "Selecteer versterker"
+                    }
+                 },{
+                    "name": "channel",
+                    "type": "autocomplete",
+                    "placeholder": "..."
                 }],
                 "hint": {
                     "en": "Triggers when the device has switched to a specific source.",                     

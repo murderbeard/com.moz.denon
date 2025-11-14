@@ -10,7 +10,7 @@ const TELNET_RECONNECT_TIME_OUT = 200;  // Time before we consider a socket trul
 const LOOP_DELAY = 50;                  // The time in between command buffer handling.
 const LOOP_DELAY_LIMP_MODE = 200;		// When receiving warnings we switch to this delay time.
 const SOCKET_CONNECT_TIMEOUT = 1000;			// Time after which we consider the socket unconnectable.
-const SOCKET_INACTIVITY_TIMEOUT = 5000;			// Time after which we apparently didn't get an answer, or closed the socket properly, but we did manage to connect.
+const SOCKET_INACTIVITY_TIMEOUT = 250;	// After which we consider a no answer will come.		// Time after which we apparently didn't get an answer, or closed the socket properly, but we did manage to connect.
 const READ_REQUEST_PROCESS_DELAY = 100;	// Delay before we send the data we received to the callback. This allows secondary messages to come through reliably.
 
 const STATUS_COMMAND_COUNT = 4;			// Number of commands before a complete update has been received.
@@ -178,9 +178,9 @@ class DenonDevice extends Homey.Device {
 			if(socket != null)	// If you can, close it. Also in case of an error.
 				socket.end();
 			
-			if(err != null)
+			if(err != null) {
 				this.statusCommandsFailed++;
-			else {
+			} else {
 				var source = this.findMessage(result, "SI");
 
 				if(source != "") {	// We actually got a valid message back.
@@ -194,6 +194,9 @@ class DenonDevice extends Homey.Device {
 							.trigger(this, {"channel": channelNameForFlow});
 
 						this.homey.flow.getDeviceTriggerCard('com.moz.denon.triggers.channelchangedto')
+							.trigger(this, null, {"channel": channelNameForFlow});
+
+						this.homey.flow.getDeviceTriggerCard('com.moz.denon.triggers.channelchangedto.v2')
 							.trigger(this, null, {"channel": channelNameForFlow});
 					}
 					
@@ -420,36 +423,39 @@ class DenonDevice extends Homey.Device {
 			} else {
 				this.socket = new net.Socket();
 
-				var cd = {
+				var connectOptions = {
 					port: TELNET_PORT,
 					host: this.ip
 				};
 
-				// INACTIVITY TIMEOUT, so not just for connecting.
-				this.socket.setTimeout(SOCKET_INACTIVITY_TIMEOUT, ()=>{
-					if(this.socket != null)
-						this.socket.destroy();
+				// Set the SOCKET_INACTIVITY_TIMEOUT, only after connecting. 
+				const setSocketInactivityTimeout = () => {
+					this.socket.setTimeout(SOCKET_INACTIVITY_TIMEOUT, ()=>{
+						if(this.socket != null)
+							this.socket.destroy();
 
-					this.writeLog(commandLogInfo +  " < Socket inactivity timeout triggered.");					
+						this.writeLog(commandLogInfo +  " < Socket inactivity timeout triggered.");					
 
-					if(callback != null && callback != undefined)
-						callback(new Error("Socket inactivity timeout triggered."), false, null);						
-				});
+						if(callback != null && callback != undefined)
+							callback(new Error("Socket inactivity timeout triggered."), false, null);						
+					});
+				}
 				
-				// Connect failed timeout. TEST MORE !!!!!!!!!!!!!!!!!!!
+				// Connect failed timeout.
 				this.connectTimeout = setTimeout(()=> {
 					this.writeLog(commandLogInfo +  " < Failed to connect. Socket timed out.");
 					if(this.socket != null)
 						this.socket.destroy();
 
 					if(callback != null && callback != undefined)
-						callback(new Error("Failed to connect to receiver. Socket timed out.\n\nIs your IP correct and is Network Control enabled on the receiver?"), false, null);						
+						callback(new Error("Couldn't connect to your receiver. Please check that:\n\n- The IP address is correct in this device's settings.\n- Network Control is set to 'Always On' in your receiver's settings."), false, null);						
 				}, SOCKET_CONNECT_TIMEOUT);
 
 				if(mode == WRITE_CLOSE_MODE) {
 					this.writeLog(commandLogInfo +  " < Sending write-close command.", LOG_LEVEL_DEBUG);
-					let client = this.socket.connect(cd, () => {
+					let client = this.socket.connect(connectOptions, () => {
 						clearTimeout(this.connectTimeout);
+						setSocketInactivityTimeout();
 						client.write(this.StringToBytes(command), () => {
 							client.end();
 
@@ -475,8 +481,9 @@ class DenonDevice extends Homey.Device {
 				} else if(newCommand.mode == READ_MODE) {
 					this.writeLog(commandLogInfo +  " < Sending read command.", LOG_LEVEL_DEBUG);
 
-					let client = this.socket.connect(cd, () => {
+					let client = this.socket.connect(connectOptions, () => {
 						clearTimeout(this.connectTimeout);
+						setSocketInactivityTimeout();
 						client.write(this.StringToBytes(command));
 					});
 
@@ -502,7 +509,7 @@ class DenonDevice extends Homey.Device {
 						}
 
 						this.readRequestProcessTimeout = setTimeout(() => {
-							this.writeLog(commandLogInfo +  " < Returned result: " + msgData.replace('\r', '\\r'), LOG_LEVEL_DEBUG);
+							this.writeLog(commandLogInfo +  " < Returned result: " + msgData.replaceAll('\r', '\\r'), LOG_LEVEL_DEBUG);
 							callback(err, msgData, client);
 						}, READ_REQUEST_PROCESS_DELAY);
 					});
